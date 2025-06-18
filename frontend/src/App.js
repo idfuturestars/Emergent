@@ -19,7 +19,21 @@ const StarLogo = () => (
   </svg>
 );
 
-// Navigation Icons (simplified)
+// Mobile Menu Icon
+const MenuIcon = () => (
+  <svg fill="currentColor" viewBox="0 0 20 20">
+    <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"/>
+  </svg>
+);
+
+// Close Icon
+const CloseIcon = () => (
+  <svg fill="currentColor" viewBox="0 0 20 20">
+    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+  </svg>
+);
+
+// Navigation Icons (cross-browser compatible SVGs)
 const DashboardIcon = () => (
   <svg className="nav-icon" fill="currentColor" viewBox="0 0 20 20">
     <path d="M10 12l-2-2m0 0l2-2m-2 2h8m-8 0H6a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2h-2"/>
@@ -62,8 +76,8 @@ const SettingsIcon = () => (
   </svg>
 );
 
-// Navigation Component
-const Navigation = () => {
+// Navigation Component with Mobile Support
+const Navigation = ({ isMobileOpen, setIsMobileOpen }) => {
   const location = useLocation();
   
   const navItems = [
@@ -76,32 +90,60 @@ const Navigation = () => {
     { path: "/settings", label: "Settings", icon: SettingsIcon },
   ];
 
+  const handleNavClick = () => {
+    setIsMobileOpen(false);
+  };
+
   return (
-    <nav className="left-sidebar">
-      <ul className="nav-menu">
-        {navItems.map((item) => {
-          const IconComponent = item.icon;
-          return (
-            <li key={item.path} className="nav-item">
-              <Link 
-                to={item.path} 
-                className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-              >
-                <IconComponent />
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <>
+      {/* Mobile Overlay */}
+      <div 
+        className={`mobile-overlay ${isMobileOpen ? 'mobile-open' : ''}`}
+        onClick={() => setIsMobileOpen(false)}
+        role="button"
+        tabIndex={-1}
+        aria-label="Close navigation menu"
+      />
+      
+      {/* Navigation Sidebar */}
+      <nav className={`left-sidebar ${isMobileOpen ? 'mobile-open' : ''}`}>
+        <ul className="nav-menu" role="list">
+          {navItems.map((item) => {
+            const IconComponent = item.icon;
+            return (
+              <li key={item.path} className="nav-item" role="listitem">
+                <Link 
+                  to={item.path} 
+                  className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                  onClick={handleNavClick}
+                  role="menuitem"
+                  aria-current={location.pathname === item.path ? 'page' : undefined}
+                >
+                  <IconComponent />
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </>
   );
 };
 
-// Header Component
-const Header = () => (
-  <header className="header">
+// Header Component with Mobile Menu
+const Header = ({ isMobileOpen, setIsMobileOpen }) => (
+  <header className="header" role="banner">
     <div className="header-left">
+      <button 
+        className="mobile-menu-toggle"
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        aria-label={isMobileOpen ? "Close navigation menu" : "Open navigation menu"}
+        aria-expanded={isMobileOpen}
+        aria-controls="navigation-menu"
+      >
+        {isMobileOpen ? <CloseIcon /> : <MenuIcon />}
+      </button>
       <StarLogo />
       <div className="brand-text">
         <div className="app-name">StarGuide</div>
@@ -109,15 +151,15 @@ const Header = () => (
       </div>
     </div>
     <div className="header-right">
-      <button className="btn btn-secondary">Profile</button>
-      <button className="btn btn-primary">Login</button>
+      <button className="btn btn-secondary" type="button">Profile</button>
+      <button className="btn btn-primary" type="button">Login</button>
     </div>
   </header>
 );
 
-// Right Sidebar Component
+// Right Sidebar Component (hidden on mobile)
 const RightSidebar = () => (
-  <aside className="right-sidebar">
+  <aside className="right-sidebar" role="complementary">
     <div className="card">
       <h3 className="card-title">Quick Stats</h3>
       <div className="card-content">
@@ -170,7 +212,7 @@ const RightSidebar = () => (
   </aside>
 );
 
-// Page Components
+// Page Components (same as before but with improved accessibility)
 const Dashboard = () => {
   const [apiStatus, setApiStatus] = useState("Checking...");
 
@@ -188,14 +230,14 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="fade-in">
+    <div className="fade-in" role="main">
       <div className="card">
         <h2 className="card-title">Welcome to StarGuide</h2>
         <div className="card-content">
           <p className="mb-16">Your AI-powered learning companion is ready to help you achieve your academic goals.</p>
           <div className="flex gap-12">
-            <button className="btn btn-primary">Start Learning</button>
-            <button className="btn btn-secondary">Take Tour</button>
+            <button className="btn btn-primary" type="button">Start Learning</button>
+            <button className="btn btn-secondary" type="button">Take Tour</button>
           </div>
         </div>
       </div>
@@ -231,61 +273,61 @@ const Dashboard = () => {
 };
 
 const StudyRooms = () => (
-  <div className="fade-in">
+  <div className="fade-in" role="main">
     <div className="card">
       <h2 className="card-title">Study Rooms</h2>
       <div className="card-content">
         <p>Real-time collaborative study rooms coming soon!</p>
-        <button className="btn btn-primary">Create Room</button>
+        <button className="btn btn-primary" type="button">Create Room</button>
       </div>
     </div>
   </div>
 );
 
 const QuizArena = () => (
-  <div className="fade-in">
+  <div className="fade-in" role="main">
     <div className="card">
       <h2 className="card-title">Quiz Arena</h2>
       <div className="card-content">
         <p>Competitive quizzes and live battles coming soon!</p>
-        <button className="btn btn-primary">Join Quiz</button>
+        <button className="btn btn-primary" type="button">Join Quiz</button>
       </div>
     </div>
   </div>
 );
 
 const StudyGroups = () => (
-  <div className="fade-in">
+  <div className="fade-in" role="main">
     <div className="card">
       <h2 className="card-title">Study Groups</h2>
       <div className="card-content">
         <p>Connect with peers and form study groups!</p>
-        <button className="btn btn-primary">Create Group</button>
+        <button className="btn btn-primary" type="button">Create Group</button>
       </div>
     </div>
   </div>
 );
 
 const AIHelper = () => (
-  <div className="fade-in">
+  <div className="fade-in" role="main">
     <div className="card">
       <h2 className="card-title">AI Helper</h2>
       <div className="card-content">
         <p>Your intelligent tutor powered by advanced AI!</p>
-        <button className="btn btn-primary">Chat with AI</button>
+        <button className="btn btn-primary" type="button">Chat with AI</button>
       </div>
     </div>
   </div>
 );
 
 const Analytics = () => (
-  <div className="fade-in">
+  <div className="fade-in" role="main">
     <div className="card">
       <h2 className="card-title">Analytics</h2>
       <div className="card-content">
         <p>Track your learning progress and performance!</p>
         <div className="progress-bar mb-16">
-          <div className="progress-fill" style={{width: "65%"}}></div>
+          <div className="progress-fill" style={{width: "65%"}} role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
         <p className="text-secondary">Overall Progress: 65%</p>
       </div>
@@ -294,25 +336,52 @@ const Analytics = () => (
 );
 
 const Settings = () => (
-  <div className="fade-in">
+  <div className="fade-in" role="main">
     <div className="card">
       <h2 className="card-title">Settings</h2>
       <div className="card-content">
         <p>Customize your StarGuide experience!</p>
-        <button className="btn btn-secondary">Preferences</button>
+        <button className="btn btn-secondary" type="button">Preferences</button>
       </div>
     </div>
   </div>
 );
 
-// Main App Component
+// Main App Component with Mobile State Management
 function App() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <div className="App">
       <BrowserRouter>
-        <Header />
+        <Header isMobileOpen={isMobileMenuOpen} setIsMobileOpen={setIsMobileMenuOpen} />
         <div className="layout-container">
-          <Navigation />
+          <Navigation isMobileOpen={isMobileMenuOpen} setIsMobileOpen={setIsMobileMenuOpen} />
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />
