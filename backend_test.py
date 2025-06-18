@@ -818,6 +818,7 @@ def run_tests():
     ]
     
     loader = unittest.TestLoader()
+    all_successful = True
     
     # Run each test class
     for test_class in test_classes:
@@ -826,12 +827,12 @@ def run_tests():
         runner = unittest.TextTestRunner(verbosity=2)
         result = runner.run(suite)
         
-        # Break if any tests failed
+        # Track failures but continue testing
         if not result.wasSuccessful():
-            print(f"\n❌ {test_class.__name__} tests failed. Stopping test execution.")
-            return False
+            print(f"\n⚠️ {test_class.__name__} had some test failures. Continuing with next test class.")
+            all_successful = False
     
-    return True
+    return all_successful
 
 
 if __name__ == "__main__":
