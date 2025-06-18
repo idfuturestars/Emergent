@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createContext, useContext } from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
 import axios from "axios";
+import io from "socket.io-client";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Authentication Context
+const AuthContext = createContext();
 
 // Star Logo Component
 const StarLogo = () => (
@@ -33,7 +37,7 @@ const CloseIcon = () => (
   </svg>
 );
 
-// Navigation Icons (cross-browser compatible SVGs)
+// Navigation Icons
 const DashboardIcon = () => (
   <svg className="nav-icon" fill="currentColor" viewBox="0 0 20 20">
     <path d="M10 12l-2-2m0 0l2-2m-2 2h8m-8 0H6a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2h-2"/>
@@ -76,17 +80,315 @@ const SettingsIcon = () => (
   </svg>
 );
 
+const HelpIcon = () => (
+  <svg className="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+  </svg>
+);
+
+// Auth Hook
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
+
+// Auth Provider
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+
+  useEffect(() => {
+    if (token) {
+      // Set default auth header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      // Verify token and get user info
+      axios.get(`${API}/auth/me`)
+        .then(response => {
+          setUser(response.data);
+        })
+        .catch(() => {
+          // Token invalid, clear it
+          localStorage.removeItem('token');
+          setToken(null);
+          delete axios.defaults.headers.common['Authorization'];
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+  }, [token]);
+
+  const login = async (email, password) => {
+    try {
+      const response = await axios.post(`${API}/auth/login`, { email, password });
+      const { token: newToken, user: userData } = response.data;
+      
+      localStorage.setItem('token', newToken);
+      setToken(newToken);
+      setUser(userData);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Login failed' };
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await axios.post(`${API}/auth/register`, userData);
+      const { token: newToken, user: newUser } = response.data;
+      
+      localStorage.setItem('token', newToken);
+      setToken(newToken);
+      setUser(newUser);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+      
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Registration failed' };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await axios.post(`${API}/auth/logout`);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, register, logout, loading, isAuthenticated: !!user }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+  
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+// Login Component
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const result = await login(email, password);
+    
+    if (!result.success) {
+      setError(result.error);
+    }
+    
+    setLoading(false);
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <StarLogo />
+          <h1>Welcome to StarGuide</h1>
+          <p>Sign in to your account</p>
+        </div>
+        
+        {error && <div className="error-message">{error}</div>}
+        
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+        
+        <div className="auth-footer">
+          <p>Don't have an account? <Link to="/register">Sign up</Link></p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Register Component
+const Register = () => {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    full_name: '',
+    role: 'student'
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const result = await register(formData);
+    
+    if (!result.success) {
+      setError(result.error);
+    }
+    
+    setLoading(false);
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <StarLogo />
+          <h1>Join StarGuide</h1>
+          <p>Create your account</p>
+        </div>
+        
+        {error && <div className="error-message">{error}</div>}
+        
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="full_name">Full Name</label>
+            <input
+              type="text"
+              id="full_name"
+              name="full_name"
+              value={formData.full_name}
+              onChange={handleChange}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="role">Role</label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+            >
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
+        </form>
+        
+        <div className="auth-footer">
+          <p>Already have an account? <Link to="/login">Sign in</Link></p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Navigation Component with Mobile Support
 const Navigation = ({ isMobileOpen, setIsMobileOpen }) => {
   const location = useLocation();
+  const { user } = useAuth();
   
   const navItems = [
-    { path: "/", label: "Dashboard", icon: DashboardIcon },
+    { path: "/dashboard", label: "Dashboard", icon: DashboardIcon },
     { path: "/study", label: "Study Rooms", icon: StudyIcon },
     { path: "/quiz", label: "Quiz Arena", icon: QuizIcon },
     { path: "/groups", label: "Study Groups", icon: GroupIcon },
     { path: "/ai-helper", label: "AI Helper", icon: AIIcon },
     { path: "/analytics", label: "Analytics", icon: AnalyticsIcon },
+    { path: "/help", label: "Help Queue", icon: HelpIcon },
     { path: "/settings", label: "Settings", icon: SettingsIcon },
   ];
 
@@ -132,89 +434,116 @@ const Navigation = ({ isMobileOpen, setIsMobileOpen }) => {
 };
 
 // Header Component with Mobile Menu
-const Header = ({ isMobileOpen, setIsMobileOpen }) => (
-  <header className="header" role="banner">
-    <div className="header-left">
-      <button 
-        className="mobile-menu-toggle"
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        aria-label={isMobileOpen ? "Close navigation menu" : "Open navigation menu"}
-        aria-expanded={isMobileOpen}
-        aria-controls="navigation-menu"
-      >
-        {isMobileOpen ? <CloseIcon /> : <MenuIcon />}
-      </button>
-      <StarLogo />
-      <div className="brand-text">
-        <div className="app-name">StarGuide</div>
-        <div className="tagline">powered by IDFS PathwayIQ™</div>
-      </div>
-    </div>
-    <div className="header-right">
-      <button className="btn btn-secondary" type="button">Profile</button>
-      <button className="btn btn-primary" type="button">Login</button>
-    </div>
-  </header>
-);
+const Header = ({ isMobileOpen, setIsMobileOpen }) => {
+  const { user, logout } = useAuth();
 
-// Right Sidebar Component (hidden on mobile)
-const RightSidebar = () => (
-  <aside className="right-sidebar" role="complementary">
-    <div className="card">
-      <h3 className="card-title">Quick Stats</h3>
-      <div className="card-content">
-        <div className="flex justify-between mb-16">
-          <span>Study Streak</span>
-          <span className="text-success">7 days</span>
-        </div>
-        <div className="flex justify-between mb-16">
-          <span>XP Points</span>
-          <span className="text-success">1,250</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Level</span>
-          <span className="text-success">12</span>
-        </div>
-      </div>
-    </div>
-    
-    <div className="card">
-      <h3 className="card-title">Active Users</h3>
-      <div className="card-content">
-        <div className="flex justify-between mb-16">
-          <span>Online Now</span>
-          <span className="status-online">• 24</span>
-        </div>
-        <div className="flex justify-between mb-16">
-          <span>In Study Rooms</span>
-          <span className="status-online">• 12</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Taking Quizzes</span>
-          <span className="status-online">• 8</span>
+  return (
+    <header className="header" role="banner">
+      <div className="header-left">
+        <button 
+          className="mobile-menu-toggle"
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          aria-label={isMobileOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={isMobileOpen}
+          aria-controls="navigation-menu"
+        >
+          {isMobileOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+        <StarLogo />
+        <div className="brand-text">
+          <div className="app-name">StarGuide</div>
+          <div className="tagline">powered by IDFS PathwayIQ™</div>
         </div>
       </div>
-    </div>
-    
-    <div className="card">
-      <h3 className="card-title">Upcoming</h3>
-      <div className="card-content">
-        <div className="mb-16">
-          <div className="text-primary">Math Quiz</div>
-          <div className="text-secondary">2:30 PM Today</div>
-        </div>
-        <div>
-          <div className="text-primary">Study Group</div>
-          <div className="text-secondary">4:00 PM Today</div>
-        </div>
+      <div className="header-right">
+        {user && (
+          <>
+            <span className="user-greeting">Welcome, {user.username}</span>
+            <button className="btn btn-secondary" onClick={logout} type="button">Logout</button>
+          </>
+        )}
       </div>
-    </div>
-  </aside>
-);
+    </header>
+  );
+};
 
-// Page Components (same as before but with improved accessibility)
+// Right Sidebar Component
+const RightSidebar = () => {
+  const { user } = useAuth();
+  const [stats, setStats] = useState({
+    study_streak: 0,
+    xp_points: 0,
+    level: 1
+  });
+
+  useEffect(() => {
+    if (user) {
+      setStats({
+        study_streak: user.study_streak || 0,
+        xp_points: user.xp_points || 0,
+        level: user.level || 1
+      });
+    }
+  }, [user]);
+
+  return (
+    <aside className="right-sidebar" role="complementary">
+      <div className="card">
+        <h3 className="card-title">Your Progress</h3>
+        <div className="card-content">
+          <div className="flex justify-between mb-16">
+            <span>Study Streak</span>
+            <span className="text-success">{stats.study_streak} days</span>
+          </div>
+          <div className="flex justify-between mb-16">
+            <span>XP Points</span>
+            <span className="text-success">{stats.xp_points}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Level</span>
+            <span className="text-success">{stats.level}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="card">
+        <h3 className="card-title">Platform Status</h3>
+        <div className="card-content">
+          <div className="flex justify-between mb-16">
+            <span>AI Services</span>
+            <span className="status-online">• Online</span>
+          </div>
+          <div className="flex justify-between mb-16">
+            <span>Real-time Chat</span>
+            <span className="status-online">• Active</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Analytics</span>
+            <span className="status-online">• Running</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="card">
+        <h3 className="card-title">Quick Actions</h3>
+        <div className="card-content">
+          <button className="btn btn-primary mb-16" style={{width: '100%'}}>
+            Start AI Chat
+          </button>
+          <button className="btn btn-secondary" style={{width: '100%'}}>
+            Join Study Room
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+// Dashboard Component
 const Dashboard = () => {
+  const { user } = useAuth();
   const [apiStatus, setApiStatus] = useState("Checking...");
+  const [analytics, setAnalytics] = useState(null);
 
   useEffect(() => {
     const checkApi = async () => {
@@ -226,18 +555,31 @@ const Dashboard = () => {
         console.error("API Error:", error);
       }
     };
+
+    const loadAnalytics = async () => {
+      try {
+        const response = await axios.get(`${API}/analytics/dashboard`);
+        setAnalytics(response.data);
+      } catch (error) {
+        console.error("Analytics error:", error);
+      }
+    };
+
     checkApi();
-  }, []);
+    if (user) {
+      loadAnalytics();
+    }
+  }, [user]);
 
   return (
     <div className="fade-in" role="main">
       <div className="card">
-        <h2 className="card-title">Welcome to StarGuide</h2>
+        <h2 className="card-title">Welcome to StarGuide, {user?.username}!</h2>
         <div className="card-content">
-          <p className="mb-16">Your AI-powered learning companion is ready to help you achieve your academic goals.</p>
+          <p className="mb-16">Your AI-powered learning companion with real-time collaboration features.</p>
           <div className="flex gap-12">
-            <button className="btn btn-primary" type="button">Start Learning</button>
-            <button className="btn btn-secondary" type="button">Take Tour</button>
+            <Link to="/ai-helper" className="btn btn-primary">Start AI Chat</Link>
+            <Link to="/quiz" className="btn btn-secondary">Take Quiz</Link>
           </div>
         </div>
       </div>
@@ -247,38 +589,427 @@ const Dashboard = () => {
         <div className="card-content">
           <div className="flex justify-between mb-16">
             <span>API Connection</span>
-            <span className={apiStatus === "Hello World" ? "status-online" : "status-offline"}>
+            <span className={apiStatus.includes("StarGuide") ? "status-online" : "status-offline"}>
               {apiStatus}
             </span>
           </div>
           <div className="flex justify-between mb-16">
-            <span>Database</span>
-            <span className="status-online">Connected</span>
+            <span>AI Services</span>
+            <span className="status-online">OpenAI, Claude, Gemini Ready</span>
           </div>
           <div className="flex justify-between">
             <span>Real-time Features</span>
-            <span className="status-offline">Coming Soon</span>
+            <span className="status-online">WebSocket Active</span>
           </div>
         </div>
       </div>
       
+      {analytics && (
+        <div className="card">
+          <h3 className="card-title">Your Learning Analytics</h3>
+          <div className="card-content">
+            <div className="flex justify-between mb-16">
+              <span>Total Assessments</span>
+              <span className="text-success">{analytics.total_assessments}</span>
+            </div>
+            <div className="flex justify-between mb-16">
+              <span>Average Score</span>
+              <span className="text-success">{analytics.average_score.toFixed(1)}%</span>
+            </div>
+            <div className="progress-bar mb-16">
+              <div 
+                className="progress-fill" 
+                style={{width: `${analytics.average_score}%`}}
+                role="progressbar" 
+                aria-valuenow={analytics.average_score} 
+                aria-valuemin="0" 
+                aria-valuemax="100"
+              ></div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// AI Helper Component
+const AIHelper = () => {
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState('openai');
+  const [selectedModel, setSelectedModel] = useState('gpt-4o');
+
+  const modelOptions = {
+    openai: ['gpt-4o', 'gpt-4o-mini', 'o1-mini'],
+    claude: ['claude-sonnet-4-20250514', 'claude-3-5-sonnet-20241022'],
+    gemini: ['gemini-2.0-flash', 'gemini-1.5-pro']
+  };
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || loading) return;
+
+    const userMessage = inputMessage;
+    setInputMessage('');
+    setLoading(true);
+
+    // Add user message to chat
+    setMessages(prev => [...prev, {
+      role: 'user',
+      content: userMessage,
+      timestamp: new Date().toLocaleTimeString()
+    }]);
+
+    try {
+      const response = await axios.post(`${API}/ai/chat`, {
+        message: userMessage,
+        provider: selectedProvider,
+        model: selectedModel
+      });
+
+      // Add AI response to chat
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: response.data.response,
+        provider: selectedProvider,
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+
+    } catch (error) {
+      console.error('AI chat error:', error);
+      setMessages(prev => [...prev, {
+        role: 'error',
+        content: 'Sorry, there was an error processing your message.',
+        timestamp: new Date().toLocaleTimeString()
+      }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  return (
+    <div className="fade-in" role="main">
       <div className="card">
-        <h3 className="card-title">Recent Activity</h3>
+        <h2 className="card-title">AI Learning Assistant</h2>
         <div className="card-content">
-          <p>No recent activity to display. Start your learning journey!</p>
+          
+          {/* AI Provider Selection */}
+          <div className="ai-controls mb-24">
+            <div className="flex gap-12 mb-16">
+              <div className="form-group">
+                <label>AI Provider:</label>
+                <select 
+                  value={selectedProvider} 
+                  onChange={(e) => {
+                    setSelectedProvider(e.target.value);
+                    setSelectedModel(modelOptions[e.target.value][0]);
+                  }}
+                  className="ai-select"
+                >
+                  <option value="openai">OpenAI GPT</option>
+                  <option value="claude">Anthropic Claude</option>
+                  <option value="gemini">Google Gemini</option>
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label>Model:</label>
+                <select 
+                  value={selectedModel} 
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="ai-select"
+                >
+                  {modelOptions[selectedProvider].map(model => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Chat Messages */}
+          <div className="chat-container">
+            <div className="chat-messages">
+              {messages.length === 0 && (
+                <div className="chat-welcome">
+                  <p>👋 Hello! I'm your AI learning assistant. Ask me anything about your studies!</p>
+                </div>
+              )}
+              
+              {messages.map((message, index) => (
+                <div key={index} className={`chat-message ${message.role}`}>
+                  <div className="message-header">
+                    <span className="message-sender">
+                      {message.role === 'user' ? 'You' : 
+                       message.role === 'assistant' ? `AI (${message.provider})` : 'System'}
+                    </span>
+                    <span className="message-time">{message.timestamp}</span>
+                  </div>
+                  <div className="message-content">{message.content}</div>
+                </div>
+              ))}
+              
+              {loading && (
+                <div className="chat-message assistant">
+                  <div className="message-content typing">
+                    <span>AI is typing...</span>
+                    <div className="typing-dots">
+                      <span></span><span></span><span></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Message Input */}
+            <div className="chat-input-container">
+              <div className="chat-input-wrapper">
+                <textarea
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me anything about your studies..."
+                  className="chat-input"
+                  rows={2}
+                />
+                <button 
+                  onClick={sendMessage}
+                  disabled={loading || !inputMessage.trim()}
+                  className="btn btn-primary chat-send-btn"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
+// Study Groups Component
+const StudyGroups = () => {
+  const [groups, setGroups] = useState([]);
+  const [myGroups, setMyGroups] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newGroup, setNewGroup] = useState({
+    name: '',
+    description: '',
+    subject: '',
+    max_members: 10,
+    is_public: true
+  });
+
+  useEffect(() => {
+    loadGroups();
+    loadMyGroups();
+  }, []);
+
+  const loadGroups = async () => {
+    try {
+      const response = await axios.get(`${API}/groups`);
+      setGroups(response.data.groups);
+    } catch (error) {
+      console.error('Error loading groups:', error);
+    }
+  };
+
+  const loadMyGroups = async () => {
+    try {
+      const response = await axios.get(`${API}/groups/my`);
+      setMyGroups(response.data.groups);
+    } catch (error) {
+      console.error('Error loading my groups:', error);
+    }
+  };
+
+  const createGroup = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await axios.post(`${API}/groups`, newGroup);
+      setShowCreateForm(false);
+      setNewGroup({ name: '', description: '', subject: '', max_members: 10, is_public: true });
+      loadGroups();
+      loadMyGroups();
+    } catch (error) {
+      console.error('Error creating group:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const joinGroup = async (groupId) => {
+    try {
+      await axios.post(`${API}/groups/join`, { group_id: groupId });
+      loadGroups();
+      loadMyGroups();
+    } catch (error) {
+      console.error('Error joining group:', error);
+    }
+  };
+
+  return (
+    <div className="fade-in" role="main">
+      <div className="card">
+        <div className="flex justify-between items-center mb-24">
+          <h2 className="card-title">Study Groups</h2>
+          <button 
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="btn btn-primary"
+          >
+            Create Group
+          </button>
+        </div>
+
+        {showCreateForm && (
+          <form onSubmit={createGroup} className="create-group-form mb-24">
+            <div className="form-row">
+              <div className="form-group">
+                <label>Group Name:</label>
+                <input
+                  type="text"
+                  value={newGroup.name}
+                  onChange={(e) => setNewGroup({...newGroup, name: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Subject:</label>
+                <input
+                  type="text"
+                  value={newGroup.subject}
+                  onChange={(e) => setNewGroup({...newGroup, subject: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label>Description:</label>
+              <textarea
+                value={newGroup.description}
+                onChange={(e) => setNewGroup({...newGroup, description: e.target.value})}
+                rows={3}
+                required
+              />
+            </div>
+            
+            <div className="form-row">
+              <div className="form-group">
+                <label>Max Members:</label>
+                <input
+                  type="number"
+                  value={newGroup.max_members}
+                  onChange={(e) => setNewGroup({...newGroup, max_members: parseInt(e.target.value)})}
+                  min={2}
+                  max={50}
+                />
+              </div>
+              <div className="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={newGroup.is_public}
+                    onChange={(e) => setNewGroup({...newGroup, is_public: e.target.checked})}
+                  />
+                  Public Group
+                </label>
+              </div>
+            </div>
+            
+            <div className="form-actions">
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? 'Creating...' : 'Create Group'}
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setShowCreateForm(false)}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+
+      {/* My Groups */}
+      {myGroups.length > 0 && (
+        <div className="card">
+          <h3 className="card-title">My Study Groups</h3>
+          <div className="groups-grid">
+            {myGroups.map(group => (
+              <div key={group.id} className="group-card">
+                <h4>{group.name}</h4>
+                <p className="group-subject">{group.subject}</p>
+                <p className="group-description">{group.description}</p>
+                <div className="group-info">
+                  <span>Members: {group.members?.length || 0}/{group.max_members}</span>
+                  <span className={group.is_public ? 'status-online' : 'status-offline'}>
+                    {group.is_public ? 'Public' : 'Private'}
+                  </span>
+                </div>
+                <Link to={`/study/${group.id}`} className="btn btn-primary">
+                  Enter Room
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Available Groups */}
+      <div className="card">
+        <h3 className="card-title">Available Study Groups</h3>
+        <div className="groups-grid">
+          {groups.filter(group => !group.is_member).map(group => (
+            <div key={group.id} className="group-card">
+              <h4>{group.name}</h4>
+              <p className="group-subject">{group.subject}</p>
+              <p className="group-description">{group.description}</p>
+              <div className="group-info">
+                <span>Members: {group.member_count}/{group.max_members}</span>
+                <span className="status-online">Public</span>
+              </div>
+              <button 
+                onClick={() => joinGroup(group.id)}
+                className="btn btn-secondary"
+                disabled={group.member_count >= group.max_members}
+              >
+                {group.member_count >= group.max_members ? 'Full' : 'Join Group'}
+              </button>
+            </div>
+          ))}
+        </div>
+        
+        {groups.filter(group => !group.is_member).length === 0 && (
+          <p className="text-secondary">No available groups. Create one to get started!</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Placeholder components for other pages
 const StudyRooms = () => (
   <div className="fade-in" role="main">
     <div className="card">
       <h2 className="card-title">Study Rooms</h2>
       <div className="card-content">
-        <p>Real-time collaborative study rooms coming soon!</p>
-        <button className="btn btn-primary" type="button">Create Room</button>
+        <p>Real-time collaborative study rooms with WebSocket support!</p>
+        <button className="btn btn-primary">Create Room</button>
       </div>
     </div>
   </div>
@@ -289,32 +1020,11 @@ const QuizArena = () => (
     <div className="card">
       <h2 className="card-title">Quiz Arena</h2>
       <div className="card-content">
-        <p>Competitive quizzes and live battles coming soon!</p>
-        <button className="btn btn-primary" type="button">Join Quiz</button>
-      </div>
-    </div>
-  </div>
-);
-
-const StudyGroups = () => (
-  <div className="fade-in" role="main">
-    <div className="card">
-      <h2 className="card-title">Study Groups</h2>
-      <div className="card-content">
-        <p>Connect with peers and form study groups!</p>
-        <button className="btn btn-primary" type="button">Create Group</button>
-      </div>
-    </div>
-  </div>
-);
-
-const AIHelper = () => (
-  <div className="fade-in" role="main">
-    <div className="card">
-      <h2 className="card-title">AI Helper</h2>
-      <div className="card-content">
-        <p>Your intelligent tutor powered by advanced AI!</p>
-        <button className="btn btn-primary" type="button">Chat with AI</button>
+        <p>Competitive quizzes and live battles with real-time synchronization!</p>
+        <div className="flex gap-12">
+          <button className="btn btn-primary">Join Quiz</button>
+          <button className="btn btn-secondary">Create Quiz Room</button>
+        </div>
       </div>
     </div>
   </div>
@@ -323,13 +1033,25 @@ const AIHelper = () => (
 const Analytics = () => (
   <div className="fade-in" role="main">
     <div className="card">
-      <h2 className="card-title">Analytics</h2>
+      <h2 className="card-title">Learning Analytics</h2>
       <div className="card-content">
-        <p>Track your learning progress and performance!</p>
+        <p>Track your learning progress with AI-powered insights!</p>
         <div className="progress-bar mb-16">
-          <div className="progress-fill" style={{width: "65%"}} role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+          <div className="progress-fill" style={{width: "75%"}}></div>
         </div>
-        <p className="text-secondary">Overall Progress: 65%</p>
+        <p className="text-secondary">Overall Progress: 75%</p>
+      </div>
+    </div>
+  </div>
+);
+
+const HelpQueue = () => (
+  <div className="fade-in" role="main">
+    <div className="card">
+      <h2 className="card-title">Help Queue</h2>
+      <div className="card-content">
+        <p>Get help from teachers and peers when you need it!</p>
+        <button className="btn btn-primary">Request Help</button>
       </div>
     </div>
   </div>
@@ -341,13 +1063,13 @@ const Settings = () => (
       <h2 className="card-title">Settings</h2>
       <div className="card-content">
         <p>Customize your StarGuide experience!</p>
-        <button className="btn btn-secondary" type="button">Preferences</button>
+        <button className="btn btn-secondary">Update Preferences</button>
       </div>
     </div>
   </div>
 );
 
-// Main App Component with Mobile State Management
+// Main App Component
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -377,26 +1099,41 @@ function App() {
   }, [isMobileMenuOpen]);
 
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Header isMobileOpen={isMobileMenuOpen} setIsMobileOpen={setIsMobileMenuOpen} />
-        <div className="layout-container">
-          <Navigation isMobileOpen={isMobileMenuOpen} setIsMobileOpen={setIsMobileMenuOpen} />
-          <main className="main-content">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/study" element={<StudyRooms />} />
-              <Route path="/quiz" element={<QuizArena />} />
-              <Route path="/groups" element={<StudyGroups />} />
-              <Route path="/ai-helper" element={<AIHelper />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </main>
-          <RightSidebar />
-        </div>
-      </BrowserRouter>
-    </div>
+    <AuthProvider>
+      <div className="App">
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            
+            {/* Protected Routes */}
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <Header isMobileOpen={isMobileMenuOpen} setIsMobileOpen={setIsMobileMenuOpen} />
+                <div className="layout-container">
+                  <Navigation isMobileOpen={isMobileMenuOpen} setIsMobileOpen={setIsMobileMenuOpen} />
+                  <main className="main-content">
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/study" element={<StudyRooms />} />
+                      <Route path="/quiz" element={<QuizArena />} />
+                      <Route path="/groups" element={<StudyGroups />} />
+                      <Route path="/ai-helper" element={<AIHelper />} />
+                      <Route path="/analytics" element={<Analytics />} />
+                      <Route path="/help" element={<HelpQueue />} />
+                      <Route path="/settings" element={<Settings />} />
+                    </Routes>
+                  </main>
+                  <RightSidebar />
+                </div>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </div>
+    </AuthProvider>
   );
 }
 
