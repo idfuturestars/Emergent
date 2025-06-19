@@ -153,7 +153,12 @@ const StudyRoom = ({ groupId, user, onLeave }) => {
           <p className="room-subject">{groupInfo?.subject}</p>
         </div>
         <div className="room-actions">
-          <span className="online-count">{onlineUsers.length} online</span>
+          <div className="connection-status">
+            <span className={`status-indicator ${connected ? 'connected' : 'disconnected'}`}>
+              {connected ? '🟢' : '🔴'}
+            </span>
+            <span className="online-count">{onlineUsers.length} online</span>
+          </div>
           <button onClick={onLeave} className="btn btn-secondary">
             Leave Room
           </button>
