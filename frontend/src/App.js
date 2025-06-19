@@ -196,6 +196,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [redirect, setRedirect] = useState(false);
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -207,10 +208,16 @@ const Login = () => {
     
     if (!result.success) {
       setError(result.error);
+    } else {
+      setRedirect(true);
     }
     
     setLoading(false);
   };
+  
+  if (redirect) {
+    return <Navigate to="/dashboard" />;
+  }
 
   return (
     <div className="auth-container">
