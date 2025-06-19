@@ -1,0 +1,74 @@
+{
+  "name": "idfs-starguide-pathwayiq",
+  "version": "2.0.0",
+  "description": "IDFS StarGuide - Advanced Educational Platform powered by PathwayIQ™",
+  "main": "backend/server.py",
+  "scripts": {
+    "start": "cd backend && python server.py",
+    "dev": "concurrently \"cd backend && python server.py\" \"cd frontend && yarn start\"",
+    "build": "cd frontend && yarn build",
+    "install-all": "cd backend && pip install -r requirements.txt && cd ../frontend && yarn install",
+    "backend": "cd backend && python server.py",
+    "frontend": "cd frontend && yarn start",
+    "test": "cd frontend && yarn test",
+    "deploy": "cd frontend && yarn build && cd ../backend && python server.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/idfuturestars/starguide-pathwayiq.git"
+  },
+  "keywords": [
+    "education",
+    "ai-tutoring",
+    "learning-platform",
+    "pathwayiq",
+    "starguide",
+    "idfs",
+    "react",
+    "fastapi",
+    "mongodb",
+    "websockets",
+    "gamification",
+    "adaptive-learning"
+  ],
+  "author": "IDFS Future Stars",
+  "license": "MIT",
+  "homepage": "https://starguideaitest.replit.app/",
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.11.0"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "devDependencies": {},
+  "starguide": {
+    "version": "2.0.0",
+    "features": [
+      "Mission Control Dashboard",
+      "Stargate Challenge Assessment",
+      "StarMentor AI (OpenAI, Claude, Gemini)",
+      "SkillScan Adaptive Assessment",
+      "Battle Arena Competitions",
+      "Learning Pods Collaboration",
+      "Galaxy Quests Missions",
+      "StarBadges Achievement System",
+      "StarRankings Leaderboards",
+      "Real-time WebSocket Communication",
+      "Advanced Analytics Dashboard",
+      "Mobile Responsive Design",
+      "JWT Authentication",
+      "MongoDB Integration",
+      "Gamification Engine"
+    ],
+    "integrations": {
+      "ai": ["OpenAI GPT-4o", "Anthropic Claude", "Google Gemini"],
+      "database": "MongoDB",
+      "realtime": "Socket.IO",
+      "authentication": "JWT",
+      "frontend": "React 19",
+      "backend": "FastAPI",
+      "styling": "Tailwind CSS"
+    }
+  }
+}
