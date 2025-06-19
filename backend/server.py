@@ -28,6 +28,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 import base64
+from bson import ObjectId
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
