@@ -48,6 +48,11 @@ const StudyRoom = ({ groupId, user, onLeave }) => {
       setLoading(false);
     });
 
+    
+    // Load group info and chat history
+    loadGroupInfo();
+    loadChatHistory();
+
     // Socket event listeners
     socketRef.current.on('user_joined', (data) => {
       console.log('User joined:', data);
@@ -64,7 +69,7 @@ const StudyRoom = ({ groupId, user, onLeave }) => {
     });
 
     socketRef.current.on('online_users', (users) => {
-      setOnlineUsers(users);
+      setOnlineUsers(users || []);
     });
 
     return () => {
