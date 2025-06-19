@@ -393,19 +393,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Authentication System Frontend"
-    - "AI Helper Interface"
     - "Study Groups Interface"
-    - "Real-time Study Rooms"
     - "Live Quiz Arena"
-    - "Advanced Analytics Dashboard"
-    - "Mobile Responsive Design"
-    - "Dashboard & Navigation"
-    - "Learning Engine UI"
-    - "Help Queue Interface"
-    - "Achievement System UI"
-  stuck_tasks: []
-  test_all: true
+  stuck_tasks:
+    - "Study Groups Interface"
+    - "Live Quiz Arena"
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
