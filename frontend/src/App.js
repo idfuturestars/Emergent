@@ -1274,20 +1274,60 @@ const QuizArena = () => {
   );
 };
 
-const Analytics = () => (
-  <div className="fade-in" role="main">
-    <div className="card">
-      <h2 className="card-title">Learning Analytics</h2>
-      <div className="card-content">
-        <p>Track your learning progress with AI-powered insights!</p>
-        <div className="progress-bar mb-16">
-          <div className="progress-fill" style={{width: "75%"}}></div>
+const Analytics = () => {
+  const { user } = useAuth();
+  const [viewMode, setViewMode] = useState('basic'); // basic or advanced
+  
+  return (
+    <div className="fade-in" role="main">
+      <div className="analytics-header">
+        <h2 className="card-title">Learning Analytics</h2>
+        <div className="view-toggle">
+          <button 
+            className={`btn ${viewMode === 'basic' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setViewMode('basic')}
+          >
+            Basic View
+          </button>
+          <button 
+            className={`btn ${viewMode === 'advanced' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setViewMode('advanced')}
+          >
+            Advanced Analytics
+          </button>
         </div>
-        <p className="text-secondary">Overall Progress: 75%</p>
       </div>
+
+      {viewMode === 'basic' ? (
+        <div className="card">
+          <div className="card-content">
+            <p>Track your learning progress with AI-powered insights!</p>
+            <div className="progress-bar mb-16">
+              <div className="progress-fill" style={{width: "75%"}}></div>
+            </div>
+            <p className="text-secondary">Overall Progress: 75%</p>
+            <div className="analytics-summary">
+              <div className="summary-item">
+                <span className="summary-label">Study Streak:</span>
+                <span className="summary-value">{user?.study_streak || 0} days</span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">XP Points:</span>
+                <span className="summary-value">{user?.xp_points || 0}</span>
+              </div>
+              <div className="summary-item">
+                <span className="summary-label">Level:</span>
+                <span className="summary-value">{user?.level || 1}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <AdvancedAnalytics user={user} />
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const HelpQueue = () => (
   <div className="fade-in" role="main">
