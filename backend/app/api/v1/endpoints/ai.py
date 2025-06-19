@@ -203,11 +203,14 @@ async def get_available_models(request: Request):
         for model in available_models
     ]
 
+class RateMessageRequest(BaseModel):
+    message_id: str
+    rating: int = Field(..., ge=1, le=5)
+
 @router.post("/rate-message")
 async def rate_message(
     request: Request,
-    message_id: str,
-    rating: int = Field(..., ge=1, le=5),
+    rate_data: RateMessageRequest,
     user_id: str = Depends(get_current_user_required)
 ):
     """Rate an AI message"""
@@ -215,7 +218,7 @@ async def rate_message(
     # Find conversation with this message
     conversation = await Conversation.find_one({
         "user_id": user_id,
-        "messages.id": message_id
+        "messages.id": rate_data.message_id
     })
     
     if not conversation:
@@ -226,9 +229,9 @@ async def rate_message(
     
     # Update message rating
     for message in conversation.messages:
-        if message.id == message_id:
-            message.user_rating = rating
-            message.is_helpful = rating >= 3
+        if message.id == rate_data.message_id:
+            message.user_rating = rate_data.rating
+            message.is_helpful = rate_data.rating >= 3
             break
     
     await conversation.save()
