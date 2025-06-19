@@ -380,6 +380,9 @@ test_plan:
     - "Advanced Analytics Dashboard"
     - "Mobile Responsive Design"
     - "Dashboard & Navigation"
+    - "Learning Engine UI"
+    - "Help Queue Interface"
+    - "Achievement System UI"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
