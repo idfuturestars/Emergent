@@ -1087,20 +1087,192 @@ const StudyRooms = () => {
   );
 };
 
-const QuizArena = () => (
-  <div className="fade-in" role="main">
-    <div className="card">
-      <h2 className="card-title">Quiz Arena</h2>
-      <div className="card-content">
-        <p>Competitive quizzes and live battles with real-time synchronization!</p>
-        <div className="flex gap-12">
-          <button className="btn btn-primary">Join Quiz</button>
-          <button className="btn btn-secondary">Create Quiz Room</button>
+// Quiz Arena Component with Live Quiz Features
+const QuizArena = () => {
+  const [showJoinForm, setShowJoinForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [roomCode, setRoomCode] = useState('');
+  const [activeQuiz, setActiveQuiz] = useState(null);
+  const [newRoom, setNewRoom] = useState({
+    name: '',
+    assessment_id: '',
+    max_participants: 20
+  });
+  const [assessments, setAssessments] = useState([]);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    loadAssessments();
+  }, []);
+
+  const loadAssessments = async () => {
+    try {
+      const response = await axios.get(`${API}/assessments`);
+      setAssessments(response.data.assessments);
+    } catch (error) {
+      console.error('Error loading assessments:', error);
+    }
+  };
+
+  const joinQuizRoom = async (e) => {
+    e.preventDefault();
+    if (!roomCode.trim()) return;
+
+    try {
+      const response = await axios.post(`${API}/quiz/rooms/${roomCode}/join`);
+      setActiveQuiz(roomCode);
+    } catch (error) {
+      console.error('Error joining quiz room:', error);
+      alert('Failed to join quiz room. Please check the room code.');
+    }
+  };
+
+  const createQuizRoom = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await axios.post(`${API}/quiz/rooms`, {
+        assessment_id: newRoom.assessment_id,
+        room_name: newRoom.name,
+        max_participants: newRoom.max_participants
+      });
+      
+      const createdRoom = response.data.room;
+      setActiveQuiz(createdRoom.room_code);
+      setShowCreateForm(false);
+    } catch (error) {
+      console.error('Error creating quiz room:', error);
+      alert('Failed to create quiz room.');
+    }
+  };
+
+  const exitQuiz = () => {
+    setActiveQuiz(null);
+    setRoomCode('');
+    setShowJoinForm(false);
+    setShowCreateForm(false);
+  };
+
+  if (activeQuiz) {
+    return (
+      <LiveQuiz 
+        roomCode={activeQuiz} 
+        user={user} 
+        onExit={exitQuiz} 
+      />
+    );
+  }
+
+  return (
+    <div className="fade-in" role="main">
+      <div className="card">
+        <h2 className="card-title">Quiz Arena</h2>
+        <div className="card-content">
+          <p>Competitive quizzes and live battles with real-time synchronization!</p>
+          
+          <div className="quiz-actions">
+            <button 
+              onClick={() => setShowJoinForm(!showJoinForm)}
+              className="btn btn-primary"
+            >
+              Join Quiz Room
+            </button>
+            
+            {user?.role === 'teacher' && (
+              <button 
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                className="btn btn-secondary"
+              >
+                Create Quiz Room
+              </button>
+            )}
+          </div>
+
+          {showJoinForm && (
+            <form onSubmit={joinQuizRoom} className="quiz-form">
+              <h3>Join Quiz Room</h3>
+              <div className="form-group">
+                <label>Room Code:</label>
+                <input
+                  type="text"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value)}
+                  placeholder="Enter 6-digit room code"
+                  maxLength={6}
+                  required
+                />
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="btn btn-primary">
+                  Join Room
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setShowJoinForm(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {showCreateForm && (
+            <form onSubmit={createQuizRoom} className="quiz-form">
+              <h3>Create Quiz Room</h3>
+              <div className="form-group">
+                <label>Room Name:</label>
+                <input
+                  type="text"
+                  value={newRoom.name}
+                  onChange={(e) => setNewRoom({...newRoom, name: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Select Assessment:</label>
+                <select
+                  value={newRoom.assessment_id}
+                  onChange={(e) => setNewRoom({...newRoom, assessment_id: e.target.value})}
+                  required
+                >
+                  <option value="">Choose an assessment...</option>
+                  {assessments.map(assessment => (
+                    <option key={assessment.id} value={assessment.id}>
+                      {assessment.title} ({assessment.subject})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Max Participants:</label>
+                <input
+                  type="number"
+                  value={newRoom.max_participants}
+                  onChange={(e) => setNewRoom({...newRoom, max_participants: parseInt(e.target.value)})}
+                  min={2}
+                  max={100}
+                />
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="btn btn-primary">
+                  Create Room
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setShowCreateForm(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Analytics = () => (
   <div className="fade-in" role="main">
