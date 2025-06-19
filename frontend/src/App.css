@@ -1744,6 +1744,33 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
+/* Coming Soon Components */
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  margin: var(--space-xl);
+}
+
+.coming-soon h2 {
+  font-size: var(--font-size-3xl);
+  color: var(--accent-primary);
+  margin-bottom: var(--space-lg);
+}
+
+.coming-soon p {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  max-width: 400px;
+}
+
 /* Print Styles */
 @media print {
   .starguide-header,
