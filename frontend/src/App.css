@@ -11,26 +11,44 @@
 :root {
   --bg-primary: #0a0a0a;
   --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
   --border-color: #333;
   --accent-color: #4CAF50;
   --accent-hover: #45a049;
+  --accent-light: #66bb6a;
   --text-primary: #ffffff;
   --text-secondary: #888;
+  --text-muted: #666;
   --error-color: #ff4444;
+  --success-color: #4CAF50;
+  --warning-color: #ff9800;
+  --info-color: #2196f3;
   --header-height: 64px;
   --sidebar-width: 250px;
   --right-sidebar-width: 300px;
   --border-radius: 12px;
+  --border-radius-sm: 6px;
+  --border-radius-lg: 16px;
   --button-radius: 8px;
+  --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --font-size-xs: 10px;
   --font-size-sm: 12px;
   --font-size-md: 14px;
   --font-size-lg: 16px;
   --font-size-xl: 18px;
-  --transition: all 0.2s ease;
+  --font-size-xxl: 24px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s ease;
+  --transition-slow: all 0.5s ease;
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 4px 16px rgba(76, 175, 80, 0.3);
+  --glow: 0 0 20px rgba(76, 175, 80, 0.4);
 }
 
 /* Body and App Container */
