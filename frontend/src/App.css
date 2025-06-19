@@ -1414,6 +1414,242 @@ body {
   font-size: 1.25rem;
 }
 
+/* Additional Form and UI Styles */
+.quiz-form {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.quiz-form h3 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.quiz-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+.empty-state p {
+  margin-bottom: var(--spacing-lg);
+}
+
+.view-toggle {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.analytics-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background-color: var(--bg-secondary);
+  border-radius: var(--button-radius);
+  border: 1px solid var(--border-color);
+}
+
+.summary-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.summary-value {
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+}
+
+.participants-count {
+  margin: var(--spacing-md) 0;
+  color: var(--text-secondary);
+}
+
+.participant-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.participant-item {
+  padding: 0.25rem 0.5rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--button-radius);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.participants-panel {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--button-radius);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.participants-panel h4 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-md);
+}
+
+.participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.participant {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: var(--bg-secondary);
+  border-radius: var(--button-radius);
+}
+
+.participant-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.current-standings {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--button-radius);
+  padding: var(--spacing-md);
+}
+
+.current-standings h4 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-md);
+}
+
+.mini-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.standing-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: var(--bg-secondary);
+  border-radius: var(--button-radius);
+  font-size: var(--font-size-sm);
+}
+
+.standing-rank {
+  color: var(--accent-color);
+  font-weight: 600;
+  min-width: 24px;
+}
+
+.standing-name {
+  flex: 1;
+  color: var(--text-primary);
+}
+
+.standing-score {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.results-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.results-header h2 {
+  color: var(--text-primary);
+  font-size: 2rem;
+}
+
+.results-actions {
+  text-align: center;
+  margin-top: var(--spacing-lg);
+}
+
+/* Performance and Chart Improvements */
+.strengths-weaknesses {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.strengths,
+.weaknesses {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--button-radius);
+  padding: var(--spacing-lg);
+}
+
+.strengths h4,
+.weaknesses h4 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.strengths ul,
+.weaknesses ul {
+  list-style: none;
+  padding: 0;
+}
+
+.strengths li,
+.weaknesses li {
+  padding: var(--spacing-sm) 0;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.strengths li:last-child,
+.weaknesses li:last-child {
+  border-bottom: none;
+}
+
+.strengths li::before {
+  content: "✅ ";
+  margin-right: var(--spacing-sm);
+}
+
+.weaknesses li::before {
+  content: "⚠️ ";
+  margin-right: var(--spacing-sm);
+}
+
 /* Mobile Responsive for New Components */
 @media screen and (max-width: 768px) {
   .study-room-content {
