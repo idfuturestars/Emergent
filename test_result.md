@@ -276,6 +276,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Backend authentication system has been fixed and is now working correctly. All authentication endpoints (register, login, logout, protected routes) are functioning properly. JWT token generation and validation working. Error handling for invalid credentials working correctly. Ready for frontend integration testing."
+      - working: true
+        agent: "testing"
+        comment: "Authentication system is working correctly. Login and registration API endpoints are functional. However, there's an issue with automatic redirection after login - the frontend doesn't automatically redirect to the dashboard after successful login, but manual navigation to the dashboard works correctly. Fixed the issue by adding redirect code to Login and Register components."
 
   - task: "AI Helper Interface"
     implemented: true
