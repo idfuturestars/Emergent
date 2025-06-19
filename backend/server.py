@@ -882,6 +882,10 @@ async def get_assessments(
         
         assessments = await db.assessments.find(query).limit(limit).to_list(limit)
         
+        # Convert ObjectIds to strings
+        for assessment in assessments:
+            assessment = serialize_mongo_doc(assessment)
+        
         return {"assessments": assessments}
         
     except Exception as e:
