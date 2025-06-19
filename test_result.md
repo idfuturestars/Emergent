@@ -342,15 +342,18 @@ frontend:
 
   - task: "Advanced Analytics Dashboard"
     implemented: true
-    working: "NA"
+    working: true
     file: "components/AdvancedAnalytics.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented advanced analytics with performance charts, study heatmap, subject breakdown, AI predictions, personalized insights"
+      - working: true
+        agent: "testing"
+        comment: "Analytics Dashboard is working correctly. Both basic and advanced analytics views render correctly, and the tabs for different analytics views (Overview, Performance, Predictions) work as expected."
 
   - task: "Mobile Responsive Design"
     implemented: true
