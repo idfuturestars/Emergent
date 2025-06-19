@@ -607,8 +607,12 @@ async def login_user(login_data: UserLogin):
             }
         }
         
+    except HTTPException as e:
+        # Re-raise HTTP exceptions with their original status code
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Login error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error")
 
 @api_router.post("/auth/logout")
 async def logout_user(current_user: dict = Depends(get_current_user)):
