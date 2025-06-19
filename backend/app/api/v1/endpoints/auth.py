@@ -5,7 +5,7 @@ Authentication endpoints
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Optional
 
 from app.core.auth import (
