@@ -318,15 +318,18 @@ frontend:
 
   - task: "Real-time Study Rooms"
     implemented: true
-    working: "NA"
+    working: false
     file: "components/StudyRoom.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented real-time study room with Socket.IO chat, online user tracking, study tools, room management"
+      - working: false
+        agent: "testing"
+        comment: "Unable to fully test the real-time study rooms functionality. The UI components are implemented, but there are issues with WebSocket connectivity. The study room page loads, but real-time features like chat and user presence tracking could not be verified."
 
   - task: "Live Quiz Arena"
     implemented: true
