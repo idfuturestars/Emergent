@@ -327,15 +327,18 @@ frontend:
 
   - task: "Live Quiz Arena"
     implemented: true
-    working: "NA"
+    working: false
     file: "components/LiveQuiz.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented live quiz battles with room codes, real-time question delivery, synchronized gameplay, leaderboards, countdown timers"
+      - working: false
+        agent: "testing"
+        comment: "Quiz Arena interface has backend API issues. The frontend UI renders correctly, and the join quiz form works, but the backend API returns a 500 error when trying to fetch assessments. Error: 'Failed to load resource: the server responded with a status of 500 () at https://0b32c60a-798a-4fee-a627-b778eba778c0.preview.emergentagent.com/api/assessments'"
 
   - task: "Advanced Analytics Dashboard"
     implemented: true
