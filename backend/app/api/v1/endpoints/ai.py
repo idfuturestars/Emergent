@@ -2,7 +2,7 @@
 AI Tutor endpoints
 """
 
-from fastapi import APIRouter, HTTPException, status, Depends, Request
+from fastapi import APIRouter, HTTPException, status, Depends, Request, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
