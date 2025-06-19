@@ -446,8 +446,15 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus: 
+    - "Authentication System Frontend"
+    - "Mission Control Dashboard"
+    - "Advanced Navigation"
+    - "StarMentor AI Interface"
+    - "Learning Pods Interface"
+    - "Mobile Responsive Design"
+  stuck_tasks: 
+    - "Authentication System Frontend"
   test_all: false
   test_priority: "high_first"
 
