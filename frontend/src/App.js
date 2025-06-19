@@ -1322,6 +1322,20 @@ const ProtectedRoute = ({ children }) => {
 // ================================
 // MAIN APP COMPONENT
 // ================================
+// Add a simple test component
+const SimpleTest = () => {
+  return (
+    <div style={{color: 'white', padding: '20px', backgroundColor: '#1a1a1a', minHeight: '100vh'}}>
+      <h1>StarGuide Test Page</h1>
+      <p>If you can see this, React is working!</p>
+      <p>Backend URL: {BACKEND_URL}</p>
+      <button onClick={() => alert('Button works!')}>Test Button</button>
+      <br /><br />
+      <a href="/login" style={{color: '#4CAF50'}}>Go to Login</a>
+    </div>
+  );
+};
+
 function App() {
   // Add debug logging
   console.log('App component mounted');
@@ -1332,10 +1346,11 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/test" element={<SimpleTest />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/debug" element={<div style={{color: 'white', padding: '20px'}}>Debug: App is working! BACKEND_URL: {BACKEND_URL}</div>} />
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to="/test" replace />} />
           <Route path="/*" element={
             <ProtectedRoute>
               <MainLayout />
