@@ -306,9 +306,9 @@ frontend:
 
   - task: "Study Groups Interface"
     implemented: true
-    working: true
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -321,6 +321,9 @@ frontend:
       - working: true
         agent: "main"
         comment: "Fixed backend ObjectId serialization issue. Added serialize_mongo_doc helper function to convert MongoDB ObjectIds to strings before JSON serialization. Study groups endpoint now working correctly, returning proper JSON responses."
+      - working: false
+        agent: "testing"
+        comment: "Unable to test Learning Pods Interface due to authentication issues. The UI components are implemented in the code (LearningPods component), but could not be accessed because users cannot log in successfully."
 
   - task: "Real-time Study Rooms"
     implemented: true
