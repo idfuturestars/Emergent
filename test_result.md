@@ -426,15 +426,18 @@ frontend:
 
   - task: "Achievement System UI"
     implemented: true
-    working: "NA"
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented achievement system UI with badge display, rarity indicators, achievement tracking, XP progression, gamification elements"
+      - working: false
+        agent: "testing"
+        comment: "Unable to fully test the Achievement System UI due to authentication issues. The UI components for the Achievement System are implemented in App.js (AchievementNotification component lines 183-202, useAchievements hook lines 208-233, and achievement notifications rendering lines 1602-1610), but could not be accessed due to authentication issues. Backend logs show ObjectId serialization errors that may be affecting authentication and API responses."
 
 metadata:
   created_by: "main_agent"
