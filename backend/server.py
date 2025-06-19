@@ -836,6 +836,10 @@ async def get_questions(
         
         questions = await db.questions.find(query).limit(limit).to_list(limit)
         
+        # Convert ObjectIds to strings
+        for question in questions:
+            question = serialize_mongo_doc(question)
+        
         return {"questions": questions}
         
     except Exception as e:
