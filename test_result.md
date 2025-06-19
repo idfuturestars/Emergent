@@ -398,12 +398,8 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Study Groups Interface"
-    - "Live Quiz Arena"
-  stuck_tasks:
-    - "Study Groups Interface"
-    - "Live Quiz Arena"
+  current_focus: []
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
