@@ -6,6 +6,7 @@ from beanie import Document, Indexed
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+from enum import Enum
 import uuid
 
 class OrganizationTier(str, Enum):
