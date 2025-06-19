@@ -1597,6 +1597,17 @@ function App() {
             } />
           </Routes>
         </BrowserRouter>
+        
+        {/* Achievement Notifications */}
+        <div className="achievement-notifications">
+          {notifications.map((notification) => (
+            <AchievementNotification
+              key={notification.id}
+              achievement={notification}
+              onClose={() => removeNotification(notification.id)}
+            />
+          ))}
+        </div>
       </div>
     </AuthProvider>
   );
