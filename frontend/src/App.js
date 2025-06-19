@@ -277,6 +277,7 @@ const Register = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [redirect, setRedirect] = useState(false);
   const { register } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -288,10 +289,16 @@ const Register = () => {
     
     if (!result.success) {
       setError(result.error);
+    } else {
+      setRedirect(true);
     }
     
     setLoading(false);
   };
+  
+  if (redirect) {
+    return <Navigate to="/dashboard" />;
+  }
 
   const handleChange = (e) => {
     setFormData({
