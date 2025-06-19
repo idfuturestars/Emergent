@@ -26,29 +26,26 @@ const StudyRoom = ({ groupId, user, onLeave }) => {
     // Connection event handlers
     socketRef.current.on('connect', () => {
       console.log('Connected to server');
+      setConnected(true);
       setLoading(false);
+      
+      // Join the study room after connection
+      socketRef.current.emit('join_room', {
+        room_id: groupId,
+        user_id: user.id,
+        username: user.username || user.email
+      });
     });
 
     socketRef.current.on('disconnect', () => {
       console.log('Disconnected from server');
+      setConnected(false);
     });
 
     socketRef.current.on('connect_error', (error) => {
       console.error('Connection error:', error);
+      setConnected(false);
       setLoading(false);
-    });
-    
-    // Load group info and chat history
-    loadGroupInfo();
-    loadChatHistory();
-    
-    // Join the study room after connection
-    socketRef.current.on('connect', () => {
-      socketRef.current.emit('join_room', {
-        room_id: groupId,
-        user_id: user.id,
-        username: user.username
-      });
     });
 
     // Socket event listeners
