@@ -1322,66 +1322,17 @@ const ProtectedRoute = ({ children }) => {
 // MAIN APP COMPONENT
 // ================================
 function App() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 768) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
   return (
     <AuthProvider>
       <Router>
         <Routes>
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
-          <Route path="/mission-control" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          } />
-          <Route path="/stargate-challenge" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          } />
-          <Route path="/starmentor" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          } />
-          <Route path="/learning-pods" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          } />
-          <Route path="/skillscan" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          } />
-          <Route path="/battle-arena" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          } />
-          <Route path="/starbadges" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          } />
           <Route path="/*" element={
             <ProtectedRoute>
               <MainLayout />
             </ProtectedRoute>
           } />
-          <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </Router>
     </AuthProvider>
