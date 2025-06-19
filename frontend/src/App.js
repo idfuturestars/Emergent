@@ -9,7 +9,7 @@ import './App.css';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Authentication Context
+// Authentication Context with performance optimization
 const AuthContext = createContext();
 
 // Star Logo Component
