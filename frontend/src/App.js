@@ -176,7 +176,251 @@ const AuthProvider = ({ children }) => {
   );
 };
 
-// Enhanced Achievement Notification System
+// Advanced Navigation Structure - Match StarGuide Advanced Version
+const NavigationMenu = ({ currentPath, onNavigate }) => {
+  const menuStructure = [
+    {
+      section: "Mission Operations",
+      items: [
+        { id: "mission-control", icon: "🎯", label: "Mission Control", path: "/mission-control", badge: "HQ" },
+        { id: "stargate-challenge", icon: "🚀", label: "Stargate Challenge", path: "/stargate-challenge" },
+        { id: "skillscan", icon: "🔍", label: "SkillScan™", path: "/skillscan" },
+        { id: "starmentor", icon: "🧠", label: "StarMentor™", path: "/starmentor" },
+      ]
+    },
+    {
+      section: "Battle Systems",
+      items: [
+        { id: "battle-arena", icon: "⚔️", label: "Battle Arena", path: "/battle-arena" },
+        { id: "galaxy-quests", icon: "🌌", label: "Galaxy Quests", path: "/galaxy-quests" },
+        { id: "learning-pods", icon: "🏠", label: "Learning Pods", path: "/learning-pods" },
+        { id: "daily-challenges", icon: "📅", label: "Daily Challenges", path: "/daily-challenges" },
+        { id: "tournaments", icon: "🏆", label: "Tournaments", path: "/tournaments" },
+      ]
+    },
+    {
+      section: "Navigation Systems",
+      items: [
+        { id: "vision-quest", icon: "👁️", label: "Vision Quest", path: "/vision-quest" },
+        { id: "trajectory", icon: "📊", label: "Trajectory", path: "/trajectory" },
+        { id: "starrankings", icon: "🏅", label: "StarRankings", path: "/starrankings" },
+        { id: "starbadges", icon: "⭐", label: "StarBadges™", path: "/starbadges" },
+      ]
+    },
+    {
+      section: "Support Systems", 
+      items: [
+        { id: "sos-station", icon: "🆘", label: "SOS Station", path: "/sos-station" },
+        { id: "mission-intel", icon: "📋", label: "Mission Intel", path: "/mission-intel" },
+      ]
+    }
+  ];
+
+  return (
+    <nav className="starguide-sidebar">
+      {menuStructure.map((section) => (
+        <div key={section.section} className="nav-section">
+          <div className="nav-section-title">{section.section}</div>
+          <ul className="nav-menu">
+            {section.items.map((item) => (
+              <li key={item.id} className="nav-item">
+                <a
+                  href={item.path}
+                  className={`nav-link ${currentPath === item.path ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate(item.path);
+                  }}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-label">{item.label}</span>
+                  {item.badge && (
+                    <span className="nav-badge">{item.badge}</span>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  );
+};
+
+// Enhanced Header Component
+const Header = ({ user, logout }) => {
+  return (
+    <header className="starguide-header">
+      <div className="header-content">
+        <StarLogo />
+        
+        <div className="header-actions">
+          <div className="user-info">
+            <span className="user-name">by{user?.username || 'User'} ({user?.role || 'Demo'})</span>
+            <button onClick={logout} className="btn btn-ghost btn-sm">
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+// Mission Control Dashboard - Main Component
+const MissionControl = ({ user }) => {
+  const [stats, setStats] = useState({
+    level: 2,
+    xp: 150,
+    maxXp: 200,
+    streak: 3,
+    onlineUsers: 28
+  });
+
+  const [missions, setMissions] = useState([
+    {
+      id: 'stargate-challenge',
+      title: 'Stargate Challenge',
+      subtitle: '60-minute Mars mission assessment',
+      status: 'ready',
+      action: 'Launch Mission'
+    },
+    {
+      id: 'daily-challenge',
+      title: 'Daily Challenge',
+      subtitle: "Complete today's challenge to maintain your streak!",
+      status: 'pending',
+      value: 3,
+      label: 'Day Streak'
+    },
+    {
+      id: 'skillscan',
+      title: 'SkillScan™',
+      subtitle: 'Adaptive assessment system',
+      status: 'available',
+      value: 6,
+      label: 'Available'
+    }
+  ]);
+
+  const [onlineUsers, setOnlineUsers] = useState([
+    { name: 'Alex Chen', level: 12, status: 'In Battle' },
+    { name: 'Sarah Kim', level: 8, status: 'Taking Quiz' },
+    { name: 'Mike Rodriguez', level: 15, status: 'Study Session' }
+  ]);
+
+  return (
+    <div className="mission-control-dashboard">
+      <div className="mission-control-header">
+        <div className="mission-control-icon">🎯</div>
+        <div>
+          <h1 className="mission-control-title">Mission Control</h1>
+          <p className="mission-control-subtitle">powered by IDFS PathwayIQ™</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3">
+        <div className="grid-span-2">
+          <div className="grid grid-cols-1">
+            {missions.map((mission) => (
+              <div key={mission.id} className="starguide-card">
+                <div className="card-header">
+                  <div className="card-icon">
+                    {mission.id === 'stargate-challenge' && '🚀'}
+                    {mission.id === 'daily-challenge' && '📅'}
+                    {mission.id === 'skillscan' && '🔍'}
+                  </div>
+                  <div>
+                    <h3 className="card-title">{mission.title}</h3>
+                    <p className="card-subtitle">{mission.subtitle}</p>
+                  </div>
+                </div>
+
+                <div className="mission-content">
+                  {mission.status === 'ready' && (
+                    <div className="mission-status">
+                      <div className="status-display ready">READY</div>
+                      <button className="btn btn-primary mission-button">
+                        {mission.action}
+                      </button>
+                    </div>
+                  )}
+
+                  {mission.value && (
+                    <div className="mission-value">
+                      <div className="value-display">{mission.value}</div>
+                      <div className="value-label">{mission.label}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="sidebar-stats">
+          <div className="starguide-card">
+            <div className="card-header">
+              <div className="card-icon">⭐</div>
+              <h3 className="card-title">Your Status</h3>
+            </div>
+            
+            <div className="stats-grid">
+              <div className="stat-item">
+                <div className="stat-value">{stats.level}</div>
+                <div className="stat-label">Level</div>
+              </div>
+              
+              <div className="progress-section">
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill" 
+                    style={{width: `${(stats.xp / stats.maxXp) * 100}%`}}
+                  ></div>
+                </div>
+                <div className="progress-text">{stats.xp} / {stats.maxXp} XP</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="starguide-card">
+            <div className="card-header">
+              <div className="card-icon">🔥</div>
+              <h3 className="card-title">Current Streak</h3>
+            </div>
+            
+            <div className="streak-display">
+              <div className="streak-value">{stats.streak}</div>
+              <div className="streak-label">Days</div>
+            </div>
+          </div>
+
+          <div className="starguide-card">
+            <div className="card-header">
+              <div className="card-icon">👥</div>
+              <h3 className="card-title">Online Now</h3>
+            </div>
+            
+            <div className="online-stats">
+              <div className="online-count">{stats.onlineUsers} users online</div>
+              
+              <div className="online-users">
+                {onlineUsers.map((user, index) => (
+                  <div key={index} className="user-item">
+                    <div className="user-name">{user.name}</div>
+                    <div className="user-details">
+                      Level {user.level} • {user.status}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 const AchievementNotification = ({ achievement, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 5000);
