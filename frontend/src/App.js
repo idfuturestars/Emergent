@@ -1005,17 +1005,87 @@ const StudyGroups = () => {
 };
 
 // Placeholder components for other pages
-const StudyRooms = () => (
-  <div className="fade-in" role="main">
-    <div className="card">
-      <h2 className="card-title">Study Rooms</h2>
-      <div className="card-content">
-        <p>Real-time collaborative study rooms with WebSocket support!</p>
-        <button className="btn btn-primary">Create Room</button>
+// Study Rooms Component with Real-time Features
+const StudyRooms = () => {
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    loadMyGroups();
+  }, []);
+
+  const loadMyGroups = async () => {
+    try {
+      const response = await axios.get(`${API}/groups/my`);
+      setGroups(response.data.groups);
+    } catch (error) {
+      console.error('Error loading groups:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const enterStudyRoom = (group) => {
+    setSelectedGroup(group);
+  };
+
+  const leaveStudyRoom = () => {
+    setSelectedGroup(null);
+  };
+
+  if (selectedGroup) {
+    return (
+      <StudyRoom 
+        groupId={selectedGroup.id} 
+        user={user} 
+        onLeave={leaveStudyRoom} 
+      />
+    );
+  }
+
+  return (
+    <div className="fade-in" role="main">
+      <div className="card">
+        <h2 className="card-title">Study Rooms</h2>
+        <div className="card-content">
+          <p>Real-time collaborative study rooms with live chat and shared tools!</p>
+          
+          {loading ? (
+            <p>Loading your study groups...</p>
+          ) : groups.length > 0 ? (
+            <div className="groups-grid">
+              {groups.map(group => (
+                <div key={group.id} className="group-card">
+                  <h4>{group.name}</h4>
+                  <p className="group-subject">{group.subject}</p>
+                  <p className="group-description">{group.description}</p>
+                  <div className="group-info">
+                    <span>Members: {group.members?.length || 0}/{group.max_members}</span>
+                  </div>
+                  <button 
+                    onClick={() => enterStudyRoom(group)}
+                    className="btn btn-primary"
+                  >
+                    Enter Study Room
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p>You haven't joined any study groups yet.</p>
+              <Link to="/groups" className="btn btn-primary">
+                Browse Study Groups
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const QuizArena = () => (
   <div className="fade-in" role="main">
