@@ -1063,11 +1063,15 @@ const LoginForm = () => {
     setLoading(true);
     setError('');
 
+    console.log('Attempting login with:', email, password);
     const result = await login(email, password);
+    console.log('Login result:', result);
     
     if (!result.success) {
       setError(result.error);
+      console.error('Login failed:', result.error);
     } else {
+      console.log('Login successful, redirecting...');
       setRedirect(true);
     }
     
