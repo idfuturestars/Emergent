@@ -31,7 +31,9 @@ const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     try {
+      console.log('Login function called with API:', API);
       const response = await axios.post(`${API}/auth/login`, { email, password });
+      console.log('Login response:', response.data);
       const { token, user: userData } = response.data;
       
       localStorage.setItem('token', token);
@@ -40,6 +42,7 @@ const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Login error:', error);
+      console.error('Error response:', error.response?.data);
       return { 
         success: false, 
         error: error.response?.data?.detail || 'Login failed' 
