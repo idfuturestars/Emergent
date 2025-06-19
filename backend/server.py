@@ -49,6 +49,19 @@ PASSWORD_SALT = os.environ.get('PASSWORD_SALT', 'default_salt').encode()
 # Security
 security = HTTPBearer()
 
+# Helper function to convert MongoDB documents for JSON serialization
+def serialize_mongo_doc(doc):
+    """Convert MongoDB document ObjectIds to strings for JSON serialization"""
+    if isinstance(doc, dict):
+        for key, value in doc.items():
+            if isinstance(value, ObjectId):
+                doc[key] = str(value)
+            elif isinstance(value, list):
+                doc[key] = [serialize_mongo_doc(item) if isinstance(item, dict) else str(item) if isinstance(item, ObjectId) else item for item in value]
+            elif isinstance(value, dict):
+                doc[key] = serialize_mongo_doc(value)
+    return doc
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
