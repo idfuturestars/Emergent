@@ -1341,17 +1341,33 @@ const HelpQueue = () => (
   </div>
 );
 
-const Settings = () => (
-  <div className="fade-in" role="main">
-    <div className="card">
-      <h2 className="card-title">Settings</h2>
-      <div className="card-content">
-        <p>Customize your StarGuide experience!</p>
-        <button className="btn btn-secondary">Update Preferences</button>
-      </div>
-    </div>
-  </div>
-);
+// Quiz Room Wrapper Component
+const QuizRoomWrapper = () => {
+  const { roomCode } = useParams();
+  const { user } = useAuth();
+  
+  return (
+    <LiveQuiz 
+      roomCode={roomCode} 
+      user={user} 
+      onExit={() => window.history.back()} 
+    />
+  );
+};
+
+// Study Room Wrapper Component  
+const StudyRoomWrapper = () => {
+  const { groupId } = useParams();
+  const { user } = useAuth();
+  
+  return (
+    <StudyRoom 
+      groupId={groupId} 
+      user={user} 
+      onLeave={() => window.history.back()} 
+    />
+  );
+};
 
 // Main App Component
 function App() {
