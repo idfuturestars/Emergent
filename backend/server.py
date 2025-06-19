@@ -458,6 +458,9 @@ async def create_default_data():
 # SOCKET.IO EVENTS (Real-time Features)
 # ================================
 
+# Store for active users in rooms
+active_users = {}
+
 @sio.event
 async def connect(sid, environ):
     """Handle client connection"""
@@ -468,32 +471,70 @@ async def connect(sid, environ):
 async def disconnect(sid):
     """Handle client disconnection"""
     logger.info(f"Client disconnected: {sid}")
+    # Remove user from all rooms they were in
+    for room_id, users in active_users.items():
+        if sid in users:
+            user_info = users[sid]
+            del users[sid]
+            await sio.emit('user_left', {
+                'user_id': user_info['user_id'],
+                'username': user_info['username'],
+                'room_id': room_id,
+                'message': f'{user_info["username"]} left the room'
+            }, room=room_id)
+            await sio.emit('online_users', list(users.values()), room=room_id)
 
 @sio.event
 async def join_room(sid, data):
     """Join a specific room (study group, quiz room, etc.)"""
     room_id = data.get('room_id')
     user_id = data.get('user_id')
+    username = data.get('username', user_id)
     
     await sio.enter_room(sid, room_id)
+    
+    # Track user in room
+    if room_id not in active_users:
+        active_users[room_id] = {}
+    
+    active_users[room_id][sid] = {
+        'user_id': user_id,
+        'username': username,
+        'joined_at': datetime.utcnow()
+    }
+    
     await sio.emit('user_joined', {
         'user_id': user_id,
+        'username': username,
         'room_id': room_id,
-        'message': f'User {user_id} joined the room'
+        'message': f'{username} joined the room'
     }, room=room_id)
+    
+    # Send updated user list
+    await sio.emit('online_users', list(active_users[room_id].values()), room=room_id)
 
 @sio.event
 async def leave_room(sid, data):
     """Leave a specific room"""
     room_id = data.get('room_id')
     user_id = data.get('user_id')
+    username = data.get('username', user_id)
     
     await sio.leave_room(sid, room_id)
-    await sio.emit('user_left', {
-        'user_id': user_id,
-        'room_id': room_id,
-        'message': f'User {user_id} left the room'
-    }, room=room_id)
+    
+    # Remove user from tracking
+    if room_id in active_users and sid in active_users[room_id]:
+        del active_users[room_id][sid]
+        
+        await sio.emit('user_left', {
+            'user_id': user_id,
+            'username': username,
+            'room_id': room_id,
+            'message': f'{username} left the room'
+        }, room=room_id)
+        
+        # Send updated user list
+        await sio.emit('online_users', list(active_users[room_id].values()), room=room_id)
 
 @sio.event
 async def send_message(sid, data):
