@@ -63,7 +63,6 @@ const StudyRoom = ({ groupId, user, onLeave }) => {
 
     socketRef.current.on('new_message', (messageData) => {
       setMessages(prev => [...prev, messageData]);
-      scrollToBottom();
     });
 
     socketRef.current.on('online_users', (users) => {
