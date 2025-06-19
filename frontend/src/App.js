@@ -1430,7 +1430,9 @@ function App() {
                       <Route path="/" element={<Navigate to="/dashboard" />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/study" element={<StudyRooms />} />
+                      <Route path="/study/:groupId" element={<StudyRoomWrapper />} />
                       <Route path="/quiz" element={<QuizArena />} />
+                      <Route path="/quiz/:roomCode" element={<QuizRoomWrapper />} />
                       <Route path="/groups" element={<StudyGroups />} />
                       <Route path="/ai-helper" element={<AIHelper />} />
                       <Route path="/analytics" element={<Analytics />} />
