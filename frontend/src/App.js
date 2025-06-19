@@ -247,25 +247,7 @@ const NavigationMenu = ({ currentPath, onNavigate }) => {
   );
 };
 
-// Enhanced Header Component
-const Header = ({ user, logout }) => {
-  return (
-    <header className="starguide-header">
-      <div className="header-content">
-        <StarLogo />
-        
-        <div className="header-actions">
-          <div className="user-info">
-            <span className="user-name">by{user?.username || 'User'} ({user?.role || 'Demo'})</span>
-            <button onClick={logout} className="btn btn-ghost btn-sm">
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
+// Enhanced Achievement Notification System
 
 // Mission Control Dashboard - Main Component
 const MissionControl = ({ user }) => {
