@@ -649,168 +649,253 @@ const Dashboard = () => {
   );
 };
 
-// AI Helper Component
+// Enhanced AI Chat Interface with improved features
 const AIHelper = () => {
-  const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState('openai');
+  const [conversations, setConversations] = useState([]);
+  const [currentMessage, setCurrentMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [aiProvider, setAiProvider] = useState('openai');
   const [selectedModel, setSelectedModel] = useState('gpt-4o');
+  const [sessionId] = useState(() => `session_${Date.now()}`);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const { user } = useAuth();
+  const messagesEndRef = useRef(null);
 
-  const modelOptions = {
-    openai: ['gpt-4o', 'gpt-4o-mini', 'o1-mini'],
-    claude: ['claude-sonnet-4-20250514', 'claude-3-5-sonnet-20241022'],
-    gemini: ['gemini-2.0-flash', 'gemini-1.5-pro']
-  };
+  // AI Provider configurations with enhanced models
+  const aiProviders = useMemo(() => ({
+    openai: {
+      name: 'OpenAI',
+      models: [
+        { id: 'gpt-4o', name: 'GPT-4o (Omni)', description: 'Latest multimodal model' },
+        { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', description: 'Advanced reasoning' },
+        { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', description: 'Fast and efficient' }
+      ],
+      icon: '🤖'
+    },
+    claude: {
+      name: 'Anthropic Claude',
+      models: [
+        { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet', description: 'Balanced performance' },
+        { id: 'claude-3-haiku', name: 'Claude 3 Haiku', description: 'Fast responses' },
+        { id: 'claude-3-opus', name: 'Claude 3 Opus', description: 'Maximum capability' }
+      ],
+      icon: '🧠'
+    },
+    gemini: {
+      name: 'Google Gemini',
+      models: [
+        { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash', description: 'Experimental latest' },
+        { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', description: 'High performance' },
+        { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: 'Speed optimized' }
+      ],
+      icon: '💎'
+    }
+  }), []);
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim() || loading) return;
+  // Enhanced message sending with typing indicators
+  const sendMessage = useCallback(async (message = currentMessage) => {
+    if (!message.trim()) return;
 
-    const userMessage = inputMessage;
-    setInputMessage('');
-    setLoading(true);
-
-    // Add user message to chat
-    setMessages(prev => [...prev, {
+    const userMessage = {
+      id: Date.now(),
       role: 'user',
-      content: userMessage,
-      timestamp: new Date().toLocaleTimeString()
-    }]);
+      content: message,
+      timestamp: new Date().toISOString(),
+      provider: aiProvider,
+      model: selectedModel
+    };
+
+    setConversations(prev => [...prev, userMessage]);
+    setCurrentMessage('');
+    setIsTyping(true);
+    setIsStreaming(true);
 
     try {
+      const token = localStorage.getItem('token');
       const response = await axios.post(`${API}/ai/chat`, {
-        message: userMessage,
-        provider: selectedProvider,
-        model: selectedModel
+        message,
+        provider: aiProvider,
+        model: selectedModel,
+        session_id: sessionId,
+        conversation_history: conversations.slice(-10) // Keep last 10 messages for context
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Add AI response to chat
-      setMessages(prev => [...prev, {
+      const aiMessage = {
+        id: Date.now() + 1,
         role: 'assistant',
         content: response.data.response,
-        provider: selectedProvider,
-        timestamp: new Date().toLocaleTimeString()
-      }]);
+        timestamp: new Date().toISOString(),
+        provider: aiProvider,
+        model: selectedModel,
+        usage: response.data.usage || null
+      };
+
+      setConversations(prev => [...prev, aiMessage]);
+      
+      // Achievement check for AI interaction
+      if (conversations.length > 0 && conversations.length % 10 === 0) {
+        showAchievementNotification('AI Enthusiast', `You've had ${conversations.length + 1} AI conversations!`);
+      }
 
     } catch (error) {
       console.error('AI chat error:', error);
-      setMessages(prev => [...prev, {
-        role: 'error',
-        content: 'Sorry, there was an error processing your message.',
-        timestamp: new Date().toLocaleTimeString()
-      }]);
+      const errorMessage = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date().toISOString(),
+        provider: aiProvider,
+        model: selectedModel,
+        error: true
+      };
+      setConversations(prev => [...prev, errorMessage]);
     } finally {
-      setLoading(false);
+      setIsTyping(false);
+      setIsStreaming(false);
     }
-  };
+  }, [currentMessage, aiProvider, selectedModel, sessionId, conversations]);
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversations, isTyping]);
+
+  // Enhanced provider switching
+  const handleProviderChange = useCallback((provider) => {
+    setAiProvider(provider);
+    const firstModel = aiProviders[provider].models[0];
+    setSelectedModel(firstModel.id);
+  }, [aiProviders]);
+
+  // Quick action buttons for common tasks
+  const quickActions = useMemo(() => [
+    { label: '📚 Explain a concept', prompt: 'Can you explain a complex concept in simple terms?' },
+    { label: '✍️ Create quiz questions', prompt: 'Generate 5 quiz questions about ' },
+    { label: '🔍 Research help', prompt: 'Help me research the topic of ' },
+    { label: '💡 Study tips', prompt: 'Give me effective study tips for ' },
+    { label: '🧮 Math problem', prompt: 'Help me solve this math problem: ' },
+    { label: '📝 Essay outline', prompt: 'Create an essay outline for the topic: ' }
+  ], []);
 
   return (
-    <div className="fade-in" role="main">
-      <div className="card">
-        <h2 className="card-title">AI Learning Assistant</h2>
-        <div className="card-content">
-          
-          {/* AI Provider Selection */}
-          <div className="ai-controls mb-24">
-            <div className="flex gap-12 mb-16">
-              <div className="form-group">
-                <label>AI Provider:</label>
-                <select 
-                  value={selectedProvider} 
-                  onChange={(e) => {
-                    setSelectedProvider(e.target.value);
-                    setSelectedModel(modelOptions[e.target.value][0]);
-                  }}
-                  className="ai-select"
-                >
-                  <option value="openai">OpenAI GPT</option>
-                  <option value="claude">Anthropic Claude</option>
-                  <option value="gemini">Google Gemini</option>
-                </select>
-              </div>
-              
-              <div className="form-group">
-                <label>Model:</label>
-                <select 
-                  value={selectedModel} 
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="ai-select"
-                >
-                  {modelOptions[selectedProvider].map(model => (
-                    <option key={model} value={model}>{model}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+    <div className="ai-helper-container">
+      <div className="ai-header">
+        <h2>🤖 AI Study Assistant</h2>
+        <div className="ai-provider-selector">
+          {Object.entries(aiProviders).map(([key, provider]) => (
+            <button
+              key={key}
+              className={`provider-btn ${aiProvider === key ? 'active' : ''}`}
+              onClick={() => handleProviderChange(key)}
+            >
+              <span className="provider-icon">{provider.icon}</span>
+              <span className="provider-name">{provider.name}</span>
+            </button>
+          ))}
+        </div>
+        <div className="model-selector">
+          <select 
+            value={selectedModel} 
+            onChange={(e) => setSelectedModel(e.target.value)}
+            className="form-control model-select"
+          >
+            {aiProviders[aiProvider].models.map(model => (
+              <option key={model.id} value={model.id}>
+                {model.name} - {model.description}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-          {/* Chat Messages */}
-          <div className="chat-container">
-            <div className="chat-messages">
-              {messages.length === 0 && (
-                <div className="chat-welcome">
-                  <p>👋 Hello! I'm your AI learning assistant. Ask me anything about your studies!</p>
-                </div>
-              )}
-              
-              {messages.map((message, index) => (
-                <div key={index} className={`chat-message ${message.role}`}>
-                  <div className="message-header">
-                    <span className="message-sender">
-                      {message.role === 'user' ? 'You' : 
-                       message.role === 'assistant' ? `AI (${message.provider})` : 'System'}
-                    </span>
-                    <span className="message-time">{message.timestamp}</span>
-                  </div>
-                  <div className="message-content">{message.content}</div>
-                </div>
-              ))}
-              
-              {loading && (
-                <div className="chat-message assistant">
-                  <div className="message-content typing">
-                    <span>AI is typing...</span>
-                    <div className="typing-dots">
-                      <span></span><span></span><span></span>
-                    </div>
-                  </div>
-                </div>
-              )}
+      <div className="quick-actions">
+        <h3>Quick Actions:</h3>
+        <div className="quick-action-buttons">
+          {quickActions.map((action, index) => (
+            <button
+              key={index}
+              className="btn btn-sm btn-ghost quick-action-btn"
+              onClick={() => setCurrentMessage(action.prompt)}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="ai-conversation">
+        {conversations.map((message) => (
+          <div key={message.id} className={`message ${message.role === 'user' ? 'user-message' : 'ai-message'} ${message.error ? 'error-message' : ''}`}>
+            <div className="message-header">
+              <span className="message-role">
+                {message.role === 'user' ? '👤 You' : `${aiProviders[message.provider]?.icon || '🤖'} ${aiProviders[message.provider]?.name || 'AI'}`}
+              </span>
+              <span className="message-model">{message.model}</span>
+              <span className="message-time">
+                {new Date(message.timestamp).toLocaleTimeString()}
+              </span>
             </div>
-            
-            {/* Message Input */}
-            <div className="chat-input-container">
-              <div className="chat-input-wrapper">
-                <textarea
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything about your studies..."
-                  className="chat-input"
-                  rows={2}
-                />
-                <button 
-                  onClick={sendMessage}
-                  disabled={loading || !inputMessage.trim()}
-                  className="btn btn-primary chat-send-btn"
-                >
-                  Send
-                </button>
+            <div className="message-content">
+              {message.content}
+            </div>
+            {message.usage && (
+              <div className="message-usage">
+                Tokens: {message.usage.total_tokens || 'N/A'}
               </div>
+            )}
+          </div>
+        ))}
+        
+        {isTyping && (
+          <div className="message ai-message typing-indicator">
+            <div className="message-header">
+              <span className="message-role">
+                {aiProviders[aiProvider]?.icon} {aiProviders[aiProvider]?.name} is thinking...
+              </span>
+            </div>
+            <div className="typing-animation">
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
           </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
+
+      <div className="ai-input-section">
+        <div className="input-group">
+          <textarea
+            value={currentMessage}
+            onChange={(e) => setCurrentMessage(e.target.value)}
+            placeholder={`Ask ${aiProviders[aiProvider]?.name} anything about your studies...`}
+            className="form-control message-input"
+            rows="3"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
+            disabled={isStreaming}
+          />
+          <button
+            onClick={() => sendMessage()}
+            disabled={!currentMessage.trim() || isStreaming}
+            className={`btn btn-primary send-btn ${isStreaming ? 'loading' : ''}`}
+          >
+            {isStreaming ? 'Sending...' : 'Send 📤'}
+          </button>
+        </div>
+        <div className="input-help">
+          <small>Press Enter to send • Shift+Enter for new line • Try the quick actions above!</small>
         </div>
       </div>
     </div>
   );
-};
 
 // Study Groups Component
 const StudyGroups = () => {
