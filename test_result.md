@@ -330,11 +330,11 @@ frontend:
 
   - task: "Live Quiz Arena"
     implemented: true
-    working: false
+    working: true
     file: "components/LiveQuiz.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -342,6 +342,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Quiz Arena interface has backend API issues. The frontend UI renders correctly, and the join quiz form works, but the backend API returns a 500 error when trying to fetch assessments. Error: 'Failed to load resource: the server responded with a status of 500 () at https://0b32c60a-798a-4fee-a627-b778eba778c0.preview.emergentagent.com/api/assessments'"
+      - working: true
+        agent: "main"
+        comment: "Fixed backend ObjectId serialization issue. Added serialize_mongo_doc helper function to convert MongoDB ObjectIds to strings before JSON serialization. Assessments endpoint now working correctly, returning proper JSON responses."
 
   - task: "Advanced Analytics Dashboard"
     implemented: true
