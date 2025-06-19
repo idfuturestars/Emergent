@@ -300,11 +300,11 @@ frontend:
 
   - task: "Study Groups Interface"
     implemented: true
-    working: false
+    working: true
     file: "App.js"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
@@ -312,6 +312,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Study Groups interface has backend API issues. The frontend UI renders correctly, but the backend API returns a 500 error when trying to fetch groups. Error: 'Failed to load resource: the server responded with a status of 500 () at https://0b32c60a-798a-4fee-a627-b778eba778c0.preview.emergentagent.com/api/groups'"
+      - working: true
+        agent: "main"
+        comment: "Fixed backend ObjectId serialization issue. Added serialize_mongo_doc helper function to convert MongoDB ObjectIds to strings before JSON serialization. Study groups endpoint now working correctly, returning proper JSON responses."
 
   - task: "Real-time Study Rooms"
     implemented: true
