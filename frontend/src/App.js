@@ -1350,7 +1350,7 @@ function App() {
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/debug" element={<div style={{color: 'white', padding: '20px'}}>Debug: App is working! BACKEND_URL: {BACKEND_URL}</div>} />
-          <Route path="/" element={<Navigate to="/test" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/*" element={
             <ProtectedRoute>
               <MainLayout />
