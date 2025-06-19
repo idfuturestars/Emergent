@@ -261,9 +261,9 @@ backend:
 frontend:
   - task: "Authentication System Frontend"
     implemented: true
-    working: true
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
@@ -279,6 +279,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Authentication system is working correctly. Login and registration API endpoints are functional. However, there's an issue with automatic redirection after login - the frontend doesn't automatically redirect to the dashboard after successful login, but manual navigation to the dashboard works correctly. Fixed the issue by adding redirect code to Login and Register components."
+      - working: false
+        agent: "testing"
+        comment: "Authentication is not working properly. Backend API endpoints (/api/auth/login and /api/auth/me) return 200 status codes, but the frontend doesn't redirect users to the dashboard after login. Users remain on the login page after submitting credentials. Backend logs show MongoDB ObjectId serialization errors that may be affecting the application."
 
   - task: "AI Helper Interface"
     implemented: true
