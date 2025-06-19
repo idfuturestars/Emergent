@@ -1,8 +1,10 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate, useParams } from "react-router-dom";
 import axios from "axios";
-import io from "socket.io-client";
+import StudyRoom from "./components/StudyRoom";
+import LiveQuiz from "./components/LiveQuiz";
+import AdvancedAnalytics from "./components/AdvancedAnalytics";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
