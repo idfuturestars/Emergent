@@ -1,10 +1,10 @@
-import React, { useState, useEffect, createContext, useContext } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route, Link, useLocation, Navigate, useParams } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect, useContext, createContext, useCallback, useMemo } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import StudyRoom from "./components/StudyRoom";
 import LiveQuiz from "./components/LiveQuiz";
 import AdvancedAnalytics from "./components/AdvancedAnalytics";
+import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
