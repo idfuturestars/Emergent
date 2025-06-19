@@ -544,19 +544,22 @@ async def send_message(sid, data):
     username = data.get('username')
     message = data.get('message')
     
-    # Create message object
+    # Create message object with proper timestamp
     chat_message = ChatMessage(
         room_id=room_id,
         user_id=user_id,
         username=username,
-        message=message
+        message=message,
+        timestamp=datetime.utcnow()
     )
     
     # Save to database
-    await db.chat_messages.insert_one(chat_message.dict())
+    message_dict = chat_message.dict()
+    await db.chat_messages.insert_one(message_dict)
     
-    # Broadcast to room
-    await sio.emit('new_message', chat_message.dict(), room=room_id)
+    # Broadcast to room with serialized timestamp
+    message_dict['timestamp'] = message_dict['timestamp'].isoformat()
+    await sio.emit('new_message', message_dict, room=room_id)
 
 @sio.event
 async def quiz_answer(sid, data):
