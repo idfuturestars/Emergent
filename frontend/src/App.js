@@ -8,6 +8,8 @@ import './App.css';
 import BattleArena from './components/BattleArena';
 import SkillScan from './components/SkillScan';
 import StarBadges from './components/StarBadges';
+import GalaxyQuests from './components/GalaxyQuests';
+import DailyChallenges from './components/DailyChallenges';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
