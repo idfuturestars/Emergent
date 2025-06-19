@@ -1,0 +1,53 @@
+modules = ["nodejs-20", "python-3.11"]
+
+[nix]
+channel = "stable-24_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.backend"
+
+[[workflows.workflow.tasks]]
+task = "workflow.frontend"
+
+[[workflows.workflow.workflow]]
+name = "backend"
+author = "agent"
+
+[[workflows.workflow.workflow.tasks]]
+task = "shell.exec"
+args = ["cd backend && pip install -r requirements.txt && python -m uvicorn server:socket_app --host=0.0.0.0 --port=8001"]
+
+[[workflows.workflow.workflow]]
+name = "frontend"
+author = "agent"
+
+[[workflows.workflow.workflow.tasks]]
+task = "shell.exec"
+args = ["cd frontend && yarn install && yarn start"]
+
+[deployment]
+run = ["python", "backend/server.py"]
+deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+exposeLocalhost = true
+
+[[ports]]
+localPort = 8001
+externalPort = 8001
+exposeLocalhost = true
+
+[[ports]]
+localPort = 27017
+externalPort = 27017
+exposeLocalhost = true
