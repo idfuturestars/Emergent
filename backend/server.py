@@ -300,7 +300,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
         return user
+    except HTTPException as e:
+        # Re-raise HTTP exceptions with their original status code
+        raise e
     except Exception as e:
+        logger.error(f"Authentication error: {str(e)}")
         raise HTTPException(status_code=401, detail="Authentication failed")
 
 # ================================
