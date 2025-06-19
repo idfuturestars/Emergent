@@ -179,7 +179,58 @@ const AuthProvider = ({ children }) => {
   );
 };
 
-// Protected Route Component
+// Enhanced Achievement Notification System
+const AchievementNotification = ({ achievement, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="achievement-notification">
+      <div className="achievement-content">
+        <div className="achievement-icon">🏆</div>
+        <div className="achievement-text">
+          <h3>Achievement Unlocked!</h3>
+          <h4>{achievement.title}</h4>
+          <p>{achievement.description}</p>
+        </div>
+        <button className="achievement-close" onClick={onClose}>×</button>
+      </div>
+    </div>
+  );
+};
+
+// Global achievement notification function
+let showAchievementNotification = () => {};
+
+// Achievement System Hook
+const useAchievements = () => {
+  const [notifications, setNotifications] = useState([]);
+
+  const addNotification = useCallback((title, description) => {
+    const achievement = {
+      id: Date.now(),
+      title,
+      description
+    };
+    setNotifications(prev => [...prev, achievement]);
+  }, []);
+
+  const removeNotification = useCallback((id) => {
+    setNotifications(prev => prev.filter(notif => notif.id !== id));
+  }, []);
+
+  // Set global function
+  useEffect(() => {
+    showAchievementNotification = addNotification;
+  }, [addNotification]);
+
+  return {
+    notifications,
+    removeNotification
+  };
+};
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   
