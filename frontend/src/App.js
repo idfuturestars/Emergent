@@ -1323,12 +1323,18 @@ const ProtectedRoute = ({ children }) => {
 // MAIN APP COMPONENT
 // ================================
 function App() {
+  // Add debug logging
+  console.log('App component mounted');
+  console.log('BACKEND_URL:', BACKEND_URL);
+  console.log('API:', API);
+
   return (
     <AuthProvider>
       <Router>
         <Routes>
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />
+          <Route path="/debug" element={<div style={{color: 'white', padding: '20px'}}>Debug: App is working! BACKEND_URL: {BACKEND_URL}</div>} />
           <Route path="/*" element={
             <ProtectedRoute>
               <MainLayout />
