@@ -4,6 +4,11 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import './App.css';
 
+// Import components
+import BattleArena from './components/BattleArena';
+import SkillScan from './components/SkillScan';
+import StarBadges from './components/StarBadges';
+
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
