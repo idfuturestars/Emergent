@@ -1054,12 +1054,15 @@ const MainLayout = ({ children }) => {
 // AUTHENTICATION COMPONENTS
 // ================================
 const LoginForm = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('demo@starguide.com');
+  const [password, setPassword] = useState('demo123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [redirect, setRedirect] = useState(false);
   const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || '/mission-control';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1074,16 +1077,12 @@ const LoginForm = () => {
       setError(result.error);
       console.error('Login failed:', result.error);
     } else {
-      console.log('Login successful, redirecting...');
-      setRedirect(true);
+      console.log('Login successful, redirecting to:', from);
+      navigate(from, { replace: true });
     }
     
     setLoading(false);
   };
-  
-  if (redirect) {
-    return <Navigate to="/mission-control" />;
-  }
 
   return (
     <div className="auth-container">
