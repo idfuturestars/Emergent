@@ -981,6 +981,28 @@ const MainLayout = ({ children }) => {
         return <StarMentorAI />;
       case '/learning-pods':
         return <LearningPods />;
+      case '/skillscan':
+        return <SkillScan />;
+      case '/battle-arena':
+        return <BattleArena />;
+      case '/starbadges':
+        return <StarBadges />;
+      case '/galaxy-quests':
+        return <div className="coming-soon"><h2>🌌 Galaxy Quests</h2><p>Epic learning adventures coming soon!</p></div>;
+      case '/daily-challenges':
+        return <div className="coming-soon"><h2>📅 Daily Challenges</h2><p>Daily learning objectives coming soon!</p></div>;
+      case '/tournaments':
+        return <div className="coming-soon"><h2>🏆 Tournaments</h2><p>Competitive tournaments coming soon!</p></div>;
+      case '/vision-quest':
+        return <div className="coming-soon"><h2>👁️ Vision Quest</h2><p>Goal tracking system coming soon!</p></div>;
+      case '/trajectory':
+        return <div className="coming-soon"><h2>📊 Trajectory</h2><p>Learning path analytics coming soon!</p></div>;
+      case '/starrankings':
+        return <div className="coming-soon"><h2>🏅 StarRankings</h2><p>Global leaderboards coming soon!</p></div>;
+      case '/sos-station':
+        return <div className="coming-soon"><h2>🆘 SOS Station</h2><p>Help queue system coming soon!</p></div>;
+      case '/mission-intel':
+        return <div className="coming-soon"><h2>📋 Mission Intel</h2><p>Study resources coming soon!</p></div>;
       default:
         return <MissionControl user={user} />;
     }
