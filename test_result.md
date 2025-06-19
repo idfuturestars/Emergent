@@ -300,15 +300,18 @@ frontend:
 
   - task: "Study Groups Interface"
     implemented: true
-    working: "NA"
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented study groups creation, joining, listing with responsive card-based UI"
+      - working: false
+        agent: "testing"
+        comment: "Study Groups interface has backend API issues. The frontend UI renders correctly, but the backend API returns a 500 error when trying to fetch groups. Error: 'Failed to load resource: the server responded with a status of 500 () at https://0b32c60a-798a-4fee-a627-b778eba778c0.preview.emergentagent.com/api/groups'"
 
   - task: "Real-time Study Rooms"
     implemented: true
