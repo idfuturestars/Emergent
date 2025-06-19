@@ -360,13 +360,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Authentication System"
-    - "AI Tutor Integration (All 3 APIs)"
-    - "Learning Engine with Questions/Assessments"
+    - "Authentication System Frontend"
+    - "AI Helper Interface"
+    - "Study Groups Interface"
     - "Real-time Study Rooms"
     - "Live Quiz Arena"
     - "Advanced Analytics Dashboard"
     - "Mobile Responsive Design"
+    - "Dashboard & Navigation"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
