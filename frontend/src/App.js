@@ -9,17 +9,17 @@ const API = `${BACKEND_URL}/api`;
 // Authentication Context with performance optimization
 const AuthContext = createContext();
 
-// Star Logo Component
+// Star Logo Component - Enhanced IDFS PathwayIQ Design
 const StarLogo = () => (
-  <svg className="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <path 
-      d="M50 5 L60 35 L90 45 L60 55 L50 85 L40 55 L10 45 L40 35 Z" 
-      fill="white" 
-      stroke="#4CAF50" 
-      strokeWidth="1"
-    />
-    <circle cx="50" cy="45" r="8" fill="#4CAF50" opacity="0.8"/>
-  </svg>
+  <div className="starguide-logo">
+    <div className="logo-icon">
+      ⭐
+    </div>
+    <div className="logo-text">
+      <div className="logo-main">StarGuide</div>
+      <div className="logo-subtitle">powered by IDFS PathwayIQ™</div>
+    </div>
+  </div>
 );
 
 // Mobile Menu Icon
