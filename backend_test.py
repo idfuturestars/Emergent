@@ -293,7 +293,7 @@ def test_rate_message():
         
         response = requests.post(
             f"{API_BASE_URL}/ai/rate-message",
-            params={"message_id": message_id, "rating": 5},
+            json={"message_id": message_id, "rating": 5},
             headers=headers
         )
         print_response(response)
