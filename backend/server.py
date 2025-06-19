@@ -1000,8 +1000,9 @@ async def get_study_groups(
         
         groups = await db.study_groups.find(query).limit(limit).to_list(limit)
         
-        # Add member count and user membership status
+        # Convert ObjectIds to strings and add member count and user membership status
         for group in groups:
+            group = serialize_mongo_doc(group)
             group['member_count'] = len(group['members'])
             group['is_member'] = current_user['id'] in group['members']
         
