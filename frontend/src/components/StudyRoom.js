@@ -10,6 +10,7 @@ const StudyRoom = ({ groupId, user, onLeave }) => {
   const [newMessage, setNewMessage] = useState('');
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [connected, setConnected] = useState(false);
   const [groupInfo, setGroupInfo] = useState(null);
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
