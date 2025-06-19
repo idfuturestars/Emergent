@@ -1434,9 +1434,9 @@ async def upload_image(file: UploadFile = File(...), current_user: dict = Depend
 # Include router in app
 app.include_router(api_router)
 
-# Mount Socket.IO app
-app.mount("/", socket_app)
+# Create Socket.IO ASGI app
+socket_app = socketio.ASGIApp(sio, app)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(socket_app, host="0.0.0.0", port=8001)
