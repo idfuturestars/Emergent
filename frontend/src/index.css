@@ -1,0 +1,264 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+/* StarGuide Space Theme Styles */
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+    'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Space Background Effect */
+.space-bg::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.1) 0%, transparent 70%),
+              radial-gradient(ellipse at 80% 20%, rgba(217, 70, 239, 0.1) 0%, transparent 50%),
+              radial-gradient(ellipse at 20% 80%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Constellation Background */
+.constellation-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.constellation-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #6366f1, transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(217, 70, 239, 0.8), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(20, 184, 166, 0.8), transparent),
+    radial-gradient(1px 1px at 130px 80px, #6366f1, transparent),
+    radial-gradient(2px 2px at 160px 30px, rgba(217, 70, 239, 0.6), transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: constellation 60s linear infinite;
+  opacity: 0.6;
+}
+
+/* Glassmorphism Effects */
+.glass {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.glass-card {
+  background: rgba(30, 41, 59, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Neon Button Effects */
+.neon-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.neon-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.4), transparent);
+  transition: left 0.5s ease;
+}
+
+.neon-button:hover::before {
+  left: 100%;
+}
+
+.neon-button:hover {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Floating Elements */
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+.float-animation:nth-child(2) {
+  animation-delay: -2s;
+}
+
+.float-animation:nth-child(3) {
+  animation-delay: -4s;
+}
+
+/* Glowing Text */
+.glow-text {
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.8);
+}
+
+/* AI Avatar Pulse */
+.ai-avatar {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+/* Loading Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(99, 102, 241, 0.3);
+  border-top: 3px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Form Styling */
+.form-input {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: rgba(30, 41, 59, 0.8);
+}
+
+/* Progress Bar */
+.progress-bar {
+  background: linear-gradient(90deg, #6366f1, #d946ef, #14b8a6);
+  background-size: 200% 100%;
+  animation: progress-flow 3s ease-in-out infinite;
+}
+
+@keyframes progress-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Chat Bubble */
+.chat-bubble-user {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  position: relative;
+}
+
+.chat-bubble-ai {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  position: relative;
+}
+
+/* Achievement Badge */
+.achievement-badge {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  animation: pulse-slow 3s infinite;
+}
+
+.achievement-badge.rare {
+  background: linear-gradient(135deg, #8b5cf6, #d946ef);
+}
+
+.achievement-badge.epic {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+}
+
+.achievement-badge.legendary {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+/* Level Up Animation */
+.level-up {
+  animation: level-up 1s ease-out;
+}
+
+@keyframes level-up {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Code Blocks */
+code {
+  font-family: 'JetBrains Mono', source-code-pro, Menlo, Monaco, Consolas,
+    'Courier New', monospace;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* Dark mode utilities */
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.shadow-neon {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.shadow-cosmic {
+  box-shadow: 0 0 20px rgba(217, 70, 239, 0.3);
+}
+
+.shadow-stellar {
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
+}
