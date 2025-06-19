@@ -13,7 +13,7 @@ from datetime import datetime
 import sys
 
 # Backend URL from frontend .env
-BACKEND_URL = "http://localhost:8001"
+BACKEND_URL = "https://e91b54c6-bec2-4ded-a41c-137fdc639c72.preview.emergentagent.com"
 API_BASE_URL = f"{BACKEND_URL}/api/v1"
 
 # Test user credentials
