@@ -382,11 +382,11 @@ frontend:
         agent: "testing"
         comment: "Mobile responsive design is working correctly. The UI adapts well to mobile viewport sizes, and the mobile menu toggle works as expected."
 
-  - task: "Dashboard & Navigation"
+  - task: "Mission Control Dashboard"
     implemented: true
-    working: true
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -396,6 +396,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Dashboard and navigation are working correctly. The sidebar navigation works, and the dashboard displays user stats and system status correctly."
+      - working: false
+        agent: "testing"
+        comment: "Unable to test Mission Control Dashboard due to authentication issues. The dashboard components are implemented in the code, but could not be accessed because users cannot log in successfully. The login API returns 200 status codes but the frontend doesn't redirect to the dashboard."
 
   - task: "Learning Engine UI"
     implemented: true
