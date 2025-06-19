@@ -15,33 +15,55 @@ const StudyRoom = ({ groupId, user, onLeave }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    // Initialize socket connection
-    socketRef.current = io(BACKEND_URL);
+    // Initialize socket connection with proper configuration
+    socketRef.current = io(BACKEND_URL, {
+      transports: ['websocket', 'polling'],
+      upgrade: true,
+      timeout: 20000
+    });
+    
+    // Connection event handlers
+    socketRef.current.on('connect', () => {
+      console.log('Connected to server');
+      setLoading(false);
+    });
+
+    socketRef.current.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    socketRef.current.on('connect_error', (error) => {
+      console.error('Connection error:', error);
+      setLoading(false);
+    });
     
     // Load group info and chat history
     loadGroupInfo();
     loadChatHistory();
     
-    // Join the study room
-    socketRef.current.emit('join_room', {
-      room_id: groupId,
-      user_id: user.id,
-      username: user.username
+    // Join the study room after connection
+    socketRef.current.on('connect', () => {
+      socketRef.current.emit('join_room', {
+        room_id: groupId,
+        user_id: user.id,
+        username: user.username
+      });
     });
 
     // Socket event listeners
     socketRef.current.on('user_joined', (data) => {
       console.log('User joined:', data);
-      addSystemMessage(`${data.user_id} joined the study room`);
+      addSystemMessage(`${data.username || data.user_id} joined the study room`);
     });
 
     socketRef.current.on('user_left', (data) => {
       console.log('User left:', data);
-      addSystemMessage(`${data.user_id} left the study room`);
+      addSystemMessage(`${data.username || data.user_id} left the study room`);
     });
 
     socketRef.current.on('new_message', (messageData) => {
       setMessages(prev => [...prev, messageData]);
+      scrollToBottom();
     });
 
     socketRef.current.on('online_users', (users) => {
