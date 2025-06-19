@@ -285,9 +285,9 @@ frontend:
 
   - task: "AI Helper Interface"
     implemented: true
-    working: true
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -300,6 +300,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "AI Helper interface is working correctly. Users can select different AI providers (OpenAI, Claude, Gemini) and models. The chat interface is functional and displays messages correctly."
+      - working: false
+        agent: "testing"
+        comment: "Unable to test StarMentor AI Interface due to authentication issues. The UI components are implemented in the code (StarMentorAI component), but could not be accessed because users cannot log in successfully."
 
   - task: "Study Groups Interface"
     implemented: true
