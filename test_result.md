@@ -411,15 +411,18 @@ frontend:
 
   - task: "Help Queue Interface"
     implemented: true
-    working: "NA"
+    working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented help queue interface with student help request creation, teacher queue management, priority system, status tracking"
+      - working: false
+        agent: "testing"
+        comment: "Unable to fully test the Help Queue Interface due to authentication issues. The backend API returns 401 Unauthorized errors when attempting to log in with various credentials. The UI components for the Help Queue are implemented in App.js (lines 1482-1492), but could not be accessed due to authentication issues. Backend logs show ObjectId serialization errors that may be affecting authentication."
 
   - task: "Achievement System UI"
     implemented: true
