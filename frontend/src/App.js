@@ -1534,6 +1534,7 @@ const StudyRoomWrapper = () => {
 // Main App Component
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { notifications, removeNotification } = useAchievements();
 
   // Close mobile menu on window resize
   useEffect(() => {
