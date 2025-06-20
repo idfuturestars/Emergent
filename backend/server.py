@@ -663,7 +663,7 @@ async def submit_adaptive_answer(
             "ability_estimate_change": ability_after - ability_before,
             "new_ability_estimate": ability_after,
             "estimated_grade_level": new_grade_level.value,
-            "think_aloud_quality_score": adaptive_engine.assess_reasoning_quality(think_aloud_dict) if think_aloud_dict else 0,
+            "think_aloud_quality_score": adaptive_engine._assess_reasoning_quality(think_aloud_dict) if think_aloud_dict else 0,
             "ai_help_impact": -0.3 if answer_data.ai_help_used else 0,
             "session_progress": {
                 "questions_completed": len(session.responses),
