@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import SkillScan from './pages/SkillScan';
+import AdaptiveSkillScan from './pages/AdaptiveSkillScan';
 import StarMentor from './pages/StarMentor';
 import GalaxyQuests from './pages/GalaxyQuests';
 import LearningPods from './pages/LearningPods';
