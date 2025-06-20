@@ -17,6 +17,7 @@ import {
 
 const SkillScan = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
