@@ -345,8 +345,7 @@ def test_ai_tutor(login_results):
         try:
             headers = get_auth_header(login_results["student"]["access_token"])
             response = requests.post(
-                f"{BASE_URL}/ai/chat", 
-                json={"message": "Can you explain the concept of photosynthesis?"},
+                f"{BASE_URL}/ai/chat?message=Can you explain the concept of photosynthesis?", 
                 headers=headers
             )
             passed = response.status_code == 200 and "response" in response.json() and "session_id" in response.json()
@@ -356,8 +355,7 @@ def test_ai_tutor(login_results):
             if passed and "session_id" in response.json():
                 session_id = response.json()["session_id"]
                 response = requests.post(
-                    f"{BASE_URL}/ai/chat", 
-                    json={"message": "What are the key components needed for photosynthesis?", "session_id": session_id},
+                    f"{BASE_URL}/ai/chat?message=What are the key components needed for photosynthesis?&session_id={session_id}", 
                     headers=headers
                 )
                 passed = response.status_code == 200 and "response" in response.json()
