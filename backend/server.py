@@ -438,7 +438,334 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return current_user
 
 # ============================================================================
-# LEARNING ENGINE ENDPOINTS
+# ADAPTIVE ASSESSMENT ENDPOINTS
+# ============================================================================
+
+@api_router.post("/adaptive-assessment/start")
+async def start_adaptive_assessment(
+    assessment_config: AdaptiveAssessmentStart,
+    current_user: User = Depends(get_current_user)
+):
+    """Start a new adaptive assessment session"""
+    try:
+        # Get user's previous performance in this subject
+        previous_answers = await db.user_answers.find({
+            "user_id": current_user.id,
+            "question_id": {"$regex": assessment_config.subject}
+        }).to_list(100)
+        
+        # Calculate initial ability estimate
+        if previous_answers:
+            correct_count = sum(1 for answer in previous_answers if answer.get("is_correct", False))
+            accuracy = correct_count / len(previous_answers)
+            initial_ability = max(0.1, min(0.9, accuracy))
+        else:
+            # Use grade level or default
+            if assessment_config.target_grade_level:
+                initial_ability = adaptive_engine.estimate_initial_ability(
+                    grade_level=assessment_config.target_grade_level
+                )
+            else:
+                # Estimate from user level
+                initial_ability = min(0.9, (current_user.level - 1) * 0.1 + 0.3)
+        
+        # Start adaptive session
+        session_id = adaptive_engine.start_adaptive_session(
+            user_id=current_user.id,
+            subject=assessment_config.subject,
+            initial_ability=initial_ability,
+            session_type=assessment_config.assessment_type
+        )
+        
+        return {
+            "session_id": session_id,
+            "initial_ability_estimate": initial_ability,
+            "estimated_grade_level": adaptive_engine.determine_grade_level(initial_ability).value,
+            "config": assessment_config.dict()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error starting adaptive assessment: {e}")
+        raise HTTPException(status_code=500, detail="Failed to start adaptive assessment")
+
+@api_router.get("/adaptive-assessment/{session_id}/next-question")
+async def get_next_adaptive_question(
+    session_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get the next optimal question for adaptive assessment"""
+    try:
+        # Get available questions for the subject
+        session = adaptive_engine.session_data.get(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Assessment session not found")
+        
+        # Get questions from database
+        questions_cursor = db.questions.find({"subject": session.subject})
+        available_questions = await questions_cursor.to_list(1000)
+        
+        # Convert to format expected by adaptive engine
+        question_list = []
+        for q in available_questions:
+            question_dict = dict(q)
+            question_dict["id"] = q["id"]
+            question_list.append(question_dict)
+        
+        # Select next question using adaptive algorithm
+        next_question = adaptive_engine.select_next_question(session_id, question_list)
+        
+        if not next_question:
+            # No more suitable questions, end assessment
+            analytics = adaptive_engine.get_session_analytics(session_id)
+            return {
+                "session_complete": True,
+                "final_analytics": analytics
+            }
+        
+        # Store question difficulty for this session
+        question_difficulty = adaptive_engine.calculate_question_difficulty(next_question)
+        adaptive_engine.question_difficulties[next_question["id"]] = question_difficulty
+        
+        # Add to session questions asked
+        session.questions_asked.append(next_question["id"])
+        
+        # Format response
+        response_question = {
+            "id": next_question["id"],
+            "question_text": next_question["question_text"],
+            "question_type": next_question["question_type"],
+            "options": next_question.get("options", []),
+            "complexity": next_question.get("complexity", "application"),
+            "grade_level": next_question.get("grade_level", "grade_8"),
+            "estimated_time_seconds": next_question.get("estimated_time_seconds", 30),
+            "think_aloud_prompts": next_question.get("think_aloud_prompts", [
+                "Explain your thinking process",
+                "What strategy are you using?",
+                "How confident are you in this answer?"
+            ]),
+            "current_ability_estimate": session.current_ability_estimate,
+            "question_number": len(session.questions_asked),
+            "estimated_difficulty": question_difficulty
+        }
+        
+        return response_question
+        
+    except Exception as e:
+        logger.error(f"Error getting next question: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get next question")
+
+@api_router.post("/adaptive-assessment/submit-answer")
+async def submit_adaptive_answer(
+    answer_data: AdaptiveAnswerSubmission,
+    current_user: User = Depends(get_current_user)
+):
+    """Submit answer for adaptive assessment with think-aloud and AI tracking"""
+    try:
+        session_id = answer_data.session_id
+        question_id = answer_data.question_id
+        
+        # Get question details
+        question = await db.questions.find_one({"id": question_id})
+        if not question:
+            raise HTTPException(status_code=404, detail="Question not found")
+        
+        # Check if answer is correct
+        is_correct = answer_data.answer.lower().strip() == question["correct_answer"].lower().strip()
+        
+        # Get current ability estimate
+        session = adaptive_engine.session_data.get(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        ability_before = session.current_ability_estimate
+        
+        # Record AI assistance if used
+        if answer_data.ai_help_used and answer_data.ai_help_details:
+            adaptive_engine.record_ai_assistance(
+                session_id=session_id,
+                assistance_type=answer_data.ai_help_details.get("type", "general"),
+                question_id=question_id,
+                help_content=answer_data.ai_help_details.get("content", "")
+            )
+        
+        # Update ability estimate
+        think_aloud_dict = answer_data.think_aloud_data.dict() if answer_data.think_aloud_data else None
+        ability_after = adaptive_engine.update_ability_estimate(
+            session_id=session_id,
+            question_id=question_id,
+            is_correct=is_correct,
+            response_time=answer_data.response_time_seconds,
+            think_aloud_data=think_aloud_dict
+        )
+        
+        # Calculate points earned
+        base_points = question.get("points", 10)
+        points_earned = base_points if is_correct else 0
+        
+        # Bonus points for good think-aloud responses
+        if think_aloud_dict:
+            reasoning_quality = adaptive_engine.assess_reasoning_quality(think_aloud_dict)
+            points_earned += int(base_points * 0.5 * reasoning_quality)
+        
+        # Penalty for excessive AI help
+        if answer_data.ai_help_used:
+            points_earned = int(points_earned * 0.7)  # 30% reduction for AI help
+        
+        # Store detailed answer record
+        user_answer = UserAnswer(
+            user_id=current_user.id,
+            question_id=question_id,
+            answer=answer_data.answer,
+            is_correct=is_correct,
+            points_earned=points_earned,
+            time_taken=int(answer_data.response_time_seconds),
+            session_id=session_id,
+            ability_estimate_before=ability_before,
+            ability_estimate_after=ability_after,
+            question_difficulty=adaptive_engine.question_difficulties.get(question_id, 0.5),
+            think_aloud_response=think_aloud_dict,
+            ai_assistance_used=answer_data.ai_help_used,
+            ai_assistance_details=answer_data.ai_help_details
+        )
+        
+        await db.user_answers.insert_one(user_answer.dict())
+        
+        # Record response in session
+        session.responses.append({
+            "question_id": question_id,
+            "is_correct": is_correct,
+            "response_time": answer_data.response_time_seconds,
+            "question_difficulty": adaptive_engine.question_difficulties.get(question_id, 0.5)
+        })
+        
+        if think_aloud_dict:
+            session.think_aloud_responses.append(think_aloud_dict)
+        
+        # Update user XP and level
+        if is_correct:
+            new_xp = current_user.xp + points_earned
+            new_level = (new_xp // 100) + 1
+            await db.users.update_one(
+                {"id": current_user.id},
+                {"$set": {"xp": new_xp, "level": new_level}}
+            )
+        
+        # Determine new grade level estimate
+        new_grade_level = adaptive_engine.determine_grade_level(ability_after)
+        
+        return {
+            "correct": is_correct,
+            "points_earned": points_earned,
+            "explanation": question["explanation"],
+            "ability_estimate_change": ability_after - ability_before,
+            "new_ability_estimate": ability_after,
+            "estimated_grade_level": new_grade_level.value,
+            "think_aloud_quality_score": adaptive_engine.assess_reasoning_quality(think_aloud_dict) if think_aloud_dict else 0,
+            "ai_help_impact": -0.3 if answer_data.ai_help_used else 0,
+            "session_progress": {
+                "questions_completed": len(session.responses),
+                "accuracy_so_far": sum(1 for r in session.responses if r["is_correct"]) / len(session.responses) if session.responses else 0
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error submitting adaptive answer: {e}")
+        raise HTTPException(status_code=500, detail="Failed to submit answer")
+
+@api_router.get("/adaptive-assessment/{session_id}/analytics")
+async def get_adaptive_session_analytics(
+    session_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get comprehensive analytics for an adaptive assessment session"""
+    try:
+        analytics = adaptive_engine.get_session_analytics(session_id)
+        
+        if not analytics:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        # Add additional insights
+        session = adaptive_engine.session_data.get(session_id)
+        if session:
+            # Calculate learning gains
+            initial_ability = adaptive_engine.estimate_initial_ability()
+            learning_gain = analytics["final_ability_estimate"] - initial_ability
+            
+            # Assess think-aloud effectiveness
+            think_aloud_effectiveness = "high" if analytics["think_aloud_quality"] > 0.7 else \
+                                     "medium" if analytics["think_aloud_quality"] > 0.4 else "low"
+            
+            # AI dependency assessment
+            ai_dependency = "high" if analytics["ai_help_percentage"] > 50 else \
+                           "medium" if analytics["ai_help_percentage"] > 20 else "low"
+            
+            analytics.update({
+                "learning_gain": learning_gain,
+                "learning_gain_description": describe_learning_gain(learning_gain),
+                "think_aloud_effectiveness": think_aloud_effectiveness,
+                "ai_dependency_level": ai_dependency,
+                "recommendations": generate_learning_recommendations(analytics),
+                "next_steps": suggest_next_steps(analytics)
+            })
+        
+        return analytics
+        
+    except Exception as e:
+        logger.error(f"Error getting session analytics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get session analytics")
+
+def describe_learning_gain(gain: float) -> str:
+    """Describe learning gain in human terms"""
+    if gain > 0.2:
+        return "Excellent progress! You've shown significant improvement."
+    elif gain > 0.1:
+        return "Good progress! You're learning and improving steadily."
+    elif gain > 0.05:
+        return "Moderate progress. Keep practicing to see more improvement."
+    elif gain > 0:
+        return "Some progress made. Consider reviewing fundamentals."
+    else:
+        return "No measurable progress. May need additional support or different approach."
+
+def generate_learning_recommendations(analytics: Dict) -> List[str]:
+    """Generate personalized learning recommendations"""
+    recommendations = []
+    
+    if analytics["accuracy"] < 0.6:
+        recommendations.append("Focus on fundamental concepts before advancing to harder topics")
+    
+    if analytics["ai_help_percentage"] > 30:
+        recommendations.append("Try solving problems independently before seeking AI assistance")
+    
+    if analytics["think_aloud_quality"] < 0.5:
+        recommendations.append("Practice explaining your reasoning out loud to improve problem-solving")
+    
+    if analytics["average_response_time"] > 60:
+        recommendations.append("Work on building fluency to improve response time")
+    
+    return recommendations
+
+def suggest_next_steps(analytics: Dict) -> List[str]:
+    """Suggest specific next steps for learning"""
+    next_steps = []
+    
+    grade_level = analytics.get("estimated_grade_level", "grade_8")
+    
+    if "kindergarten" in grade_level or "grade_1" in grade_level:
+        next_steps.append("Practice with visual and hands-on learning activities")
+    elif "grade_" in grade_level and int(grade_level.split("_")[1]) <= 5:
+        next_steps.append("Focus on building foundational skills through gamified learning")
+    elif "grade_" in grade_level and int(grade_level.split("_")[1]) <= 8:
+        next_steps.append("Develop abstract thinking through real-world problem applications")
+    elif "grade_" in grade_level and int(grade_level.split("_")[1]) <= 12:
+        next_steps.append("Practice advanced reasoning and analytical thinking")
+    else:
+        next_steps.append("Engage in research-based and creative problem-solving")
+    
+    return next_steps
+
+# ============================================================================
+# ENHANCED LEARNING ENGINE ENDPOINTS
 # ============================================================================
 
 @api_router.post("/questions", response_model=Question)
