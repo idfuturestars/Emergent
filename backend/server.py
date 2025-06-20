@@ -22,7 +22,10 @@ import redis
 from collections import defaultdict
 
 # Import adaptive engine
-from backend.adaptive_engine import (
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from adaptive_engine import (
     AdaptiveEngine, GradeLevel, QuestionComplexity, ThinkAloudType,
     adaptive_engine
 )
