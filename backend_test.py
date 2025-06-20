@@ -382,8 +382,7 @@ def test_chat_system(login_results):
         try:
             headers = get_auth_header(login_results["student"]["access_token"])
             response = requests.post(
-                f"{BASE_URL}/chat/{room_id}/message", 
-                json={"message": "Hello, this is a test message!"},
+                f"{BASE_URL}/chat/{room_id}/message?message=Hello, this is a test message!", 
                 headers=headers
             )
             passed = response.status_code == 200 and "id" in response.json()
