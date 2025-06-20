@@ -604,7 +604,7 @@ async def submit_adaptive_answer(
         
         # Bonus points for good think-aloud responses
         if think_aloud_dict:
-            reasoning_quality = adaptive_engine.assess_reasoning_quality(think_aloud_dict)
+            reasoning_quality = adaptive_engine._assess_reasoning_quality(think_aloud_dict)
             points_earned += int(base_points * 0.5 * reasoning_quality)
         
         # Penalty for excessive AI help
