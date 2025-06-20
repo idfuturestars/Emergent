@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   DocumentTextIcon,
@@ -9,7 +10,9 @@ import {
   LightBulbIcon,
   ArrowRightIcon,
   PlayIcon,
-  PauseIcon
+  PauseIcon,
+  RocketLaunchIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 
 const SkillScan = () => {
