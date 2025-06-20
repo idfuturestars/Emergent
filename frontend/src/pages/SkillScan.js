@@ -143,8 +143,55 @@ const SkillScan = () => {
           </p>
         </div>
 
+        {/* Adaptive vs Standard Options */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="starguide-card hover:border-green-500/30 transition-all cursor-pointer"
+               onClick={() => navigate('/adaptive-skillscan')}>
+            <div className="text-center">
+              <StarIcon className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">Adaptive SkillScan™</h3>
+              <p className="text-gray-400 mb-4">
+                AI-powered assessment that adapts to your skill level (K-PhD+)
+              </p>
+              <div className="space-y-2 text-sm text-gray-300">
+                <div>✨ Questions adapt to your performance</div>
+                <div>🧠 Think-aloud mode for deeper analysis</div>
+                <div>📊 Advanced analytics and recommendations</div>
+                <div>🎓 Accurate grade level detection</div>
+              </div>
+              <button className="btn-primary w-full mt-4">
+                <RocketLaunchIcon className="w-5 h-5 mr-2" />
+                Try Adaptive Mode
+              </button>
+            </div>
+          </div>
+
+          <div className="starguide-card">
+            <div className="text-center">
+              <DocumentTextIcon className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">Standard SkillScan</h3>
+              <p className="text-gray-400 mb-4">
+                Traditional fixed-difficulty assessment
+              </p>
+              <div className="space-y-2 text-sm text-gray-300">
+                <div>📋 Fixed set of questions</div>
+                <div>⏱️ Timed assessment</div>
+                <div>🎯 Subject-specific focus</div>
+                <div>📈 Basic scoring and feedback</div>
+              </div>
+              <button 
+                onClick={() => setSessionStarted(true)}
+                className="btn-secondary w-full mt-4"
+              >
+                <PlayIcon className="w-5 h-5 mr-2" />
+                Continue with Standard
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="starguide-card">
-          <h2 className="text-2xl font-semibold text-white mb-6">Configure Your Assessment</h2>
+          <h2 className="text-2xl font-semibold text-white mb-6">Standard Assessment Configuration</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div>
