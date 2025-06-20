@@ -139,6 +139,14 @@ class Question(BaseModel):
     created_by: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     tags: List[str] = []
+    # Enhanced adaptive fields
+    grade_level: GradeLevel = GradeLevel.GRADE_8
+    complexity: QuestionComplexity = QuestionComplexity.APPLICATION
+    requires_prior_knowledge: bool = False
+    multi_step: bool = False
+    abstract_reasoning: bool = False
+    estimated_time_seconds: int = 30
+    think_aloud_prompts: List[str] = []
 
 class QuestionCreate(BaseModel):
     question_text: str
@@ -151,6 +159,38 @@ class QuestionCreate(BaseModel):
     explanation: str
     points: int = 10
     tags: List[str] = []
+    grade_level: GradeLevel = GradeLevel.GRADE_8
+    complexity: QuestionComplexity = QuestionComplexity.APPLICATION
+    requires_prior_knowledge: bool = False
+    multi_step: bool = False
+    abstract_reasoning: bool = False
+    estimated_time_seconds: int = 30
+    think_aloud_prompts: List[str] = []
+
+class AdaptiveAssessmentStart(BaseModel):
+    subject: str
+    target_grade_level: Optional[GradeLevel] = None
+    assessment_type: str = "diagnostic"  # diagnostic, practice, challenge
+    enable_think_aloud: bool = True
+    enable_ai_help_tracking: bool = True
+    max_questions: int = 20
+
+class ThinkAloudResponse(BaseModel):
+    question_id: str
+    reasoning: str
+    strategy: str
+    confidence_level: int  # 1-5 scale
+    difficulty_perception: int  # 1-5 scale
+    connections_to_prior_knowledge: str
+
+class AdaptiveAnswerSubmission(BaseModel):
+    session_id: str
+    question_id: str
+    answer: str
+    response_time_seconds: float
+    think_aloud_data: Optional[ThinkAloudResponse] = None
+    ai_help_used: bool = False
+    ai_help_details: Optional[Dict] = None
 
 class UserAnswer(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -161,6 +201,14 @@ class UserAnswer(BaseModel):
     points_earned: int
     time_taken: int  # seconds
     answered_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    # Enhanced adaptive fields
+    session_id: Optional[str] = None
+    ability_estimate_before: Optional[float] = None
+    ability_estimate_after: Optional[float] = None
+    question_difficulty: Optional[float] = None
+    think_aloud_response: Optional[Dict] = None
+    ai_assistance_used: bool = False
+    ai_assistance_details: Optional[Dict] = None
 
 class StudySession(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
