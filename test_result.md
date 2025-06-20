@@ -119,15 +119,18 @@ backend:
 
   - task: "Authentication System - Registration/Login/JWT"
     implemented: true
-    working: true
+    working: false
     file: "backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: true
         - agent: "main"
         - comment: "Full authentication system with role-based access (student/teacher/admin)"
+        - working: false
+        - agent: "testing"
+        - comment: "Authentication system is not working due to bcrypt library issue. Error: 'AttributeError: module 'bcrypt' has no attribute '__about__'' is preventing successful login. This is a known issue with bcrypt and passlib compatibility."
 
   - task: "Real-time WebSocket Integration"
     implemented: true
