@@ -399,6 +399,227 @@ def test_chat_system(login_results):
         except Exception as e:
             log_test("Get Chat Messages", False, str(e))
 
+def test_adaptive_assessment(login_results):
+    """Test the adaptive assessment functionality"""
+    if not login_results.get("student") or "access_token" not in login_results["student"]:
+        log_test("Adaptive Assessment - Start Session", False, "No student login available")
+        return
+    
+    headers = get_auth_header(login_results["student"]["access_token"])
+    session_id = None
+    
+    # 1. Start an adaptive assessment session
+    try:
+        assessment_config = {
+            "subject": "Mathematics",
+            "target_grade_level": "grade_8",
+            "assessment_type": "diagnostic",
+            "enable_think_aloud": True,
+            "enable_ai_help_tracking": True,
+            "max_questions": 5
+        }
+        
+        response = requests.post(
+            f"{BASE_URL}/adaptive-assessment/start", 
+            json=assessment_config,
+            headers=headers
+        )
+        
+        passed = (
+            response.status_code == 200 and 
+            "session_id" in response.json() and
+            "initial_ability_estimate" in response.json()
+        )
+        
+        log_test("Adaptive Assessment - Start Session", passed, response.text if not passed else "")
+        
+        if passed:
+            session_id = response.json()["session_id"]
+            print(f"  Created session: {session_id}")
+            print(f"  Initial ability: {response.json()['initial_ability_estimate']}")
+            print(f"  Estimated grade level: {response.json()['estimated_grade_level']}")
+    except Exception as e:
+        log_test("Adaptive Assessment - Start Session", False, str(e))
+    
+    if not session_id:
+        log_test("Adaptive Assessment - Get Next Question", False, "No session ID available")
+        return
+    
+    # 2. Get the first adaptive question
+    question_id = None
+    try:
+        response = requests.get(
+            f"{BASE_URL}/adaptive-assessment/{session_id}/next-question",
+            headers=headers
+        )
+        
+        passed = (
+            response.status_code == 200 and
+            "id" in response.json() and
+            "question_text" in response.json() and
+            "estimated_difficulty" in response.json()
+        )
+        
+        log_test("Adaptive Assessment - Get Next Question", passed, response.text if not passed else "")
+        
+        if passed:
+            question_id = response.json()["id"]
+            print(f"  Question: {response.json()['question_text']}")
+            print(f"  Difficulty: {response.json()['estimated_difficulty']}")
+            print(f"  Current ability estimate: {response.json()['current_ability_estimate']}")
+    except Exception as e:
+        log_test("Adaptive Assessment - Get Next Question", False, str(e))
+    
+    if not question_id:
+        log_test("Adaptive Assessment - Submit Answer", False, "No question ID available")
+        return
+    
+    # 3. Submit an answer with think-aloud data
+    try:
+        # Create think-aloud data
+        think_aloud_data = {
+            "question_id": question_id,
+            "reasoning": "I'm solving this by first understanding what the question is asking. I need to apply the formula for the area of a circle which is πr². Since the radius is given as 5 cm, I can calculate the area as π × 5² = π × 25 = 78.54 cm².",
+            "strategy": "I'm using the formula for the area of a circle and substituting the given radius.",
+            "confidence_level": 4,  # 1-5 scale
+            "difficulty_perception": 2,  # 1-5 scale
+            "connections_to_prior_knowledge": "This connects to my previous knowledge of geometry and the properties of circles."
+        }
+        
+        # Submit answer
+        answer_data = {
+            "session_id": session_id,
+            "question_id": question_id,
+            "answer": "78.54",  # Assuming this is correct for testing
+            "response_time_seconds": 25.5,
+            "think_aloud_data": think_aloud_data,
+            "ai_help_used": False
+        }
+        
+        response = requests.post(
+            f"{BASE_URL}/adaptive-assessment/submit-answer",
+            json=answer_data,
+            headers=headers
+        )
+        
+        passed = (
+            response.status_code == 200 and
+            "correct" in response.json() and
+            "points_earned" in response.json() and
+            "new_ability_estimate" in response.json()
+        )
+        
+        log_test("Adaptive Assessment - Submit Answer with Think-Aloud", passed, response.text if not passed else "")
+        
+        if passed:
+            print(f"  Correct: {response.json()['correct']}")
+            print(f"  Points earned: {response.json()['points_earned']}")
+            print(f"  New ability estimate: {response.json()['new_ability_estimate']}")
+            print(f"  Think-aloud quality score: {response.json()['think_aloud_quality_score']}")
+    except Exception as e:
+        log_test("Adaptive Assessment - Submit Answer with Think-Aloud", False, str(e))
+    
+    # 4. Get the next question (should adapt based on performance)
+    second_question_id = None
+    try:
+        response = requests.get(
+            f"{BASE_URL}/adaptive-assessment/{session_id}/next-question",
+            headers=headers
+        )
+        
+        passed = (
+            response.status_code == 200 and
+            "id" in response.json() and
+            "question_text" in response.json() and
+            "estimated_difficulty" in response.json()
+        )
+        
+        # Check if difficulty adapted based on previous correct answer
+        if passed and "estimated_difficulty" in response.json():
+            # If previous answer was correct, difficulty should increase
+            adaptation_correct = response.json()["estimated_difficulty"] > 0.5
+            log_test("Adaptive Assessment - Question Difficulty Adaptation", adaptation_correct, 
+                     "Question difficulty did not adapt as expected" if not adaptation_correct else "")
+        
+        log_test("Adaptive Assessment - Get Second Question", passed, response.text if not passed else "")
+        
+        if passed:
+            second_question_id = response.json()["id"]
+            print(f"  Second question: {response.json()['question_text']}")
+            print(f"  New difficulty: {response.json()['estimated_difficulty']}")
+    except Exception as e:
+        log_test("Adaptive Assessment - Get Second Question", False, str(e))
+    
+    if not second_question_id:
+        log_test("Adaptive Assessment - Submit Answer with AI Help", False, "No second question ID available")
+        return
+    
+    # 5. Submit another answer with AI help tracking
+    try:
+        # Submit answer with AI help
+        ai_help_details = {
+            "type": "hint",
+            "content": "The AI provided a hint about using the quadratic formula to solve this equation."
+        }
+        
+        answer_data = {
+            "session_id": session_id,
+            "question_id": second_question_id,
+            "answer": "x = 3",  # Assuming this is correct for testing
+            "response_time_seconds": 45.2,
+            "think_aloud_data": None,  # No think-aloud this time
+            "ai_help_used": True,
+            "ai_help_details": ai_help_details
+        }
+        
+        response = requests.post(
+            f"{BASE_URL}/adaptive-assessment/submit-answer",
+            json=answer_data,
+            headers=headers
+        )
+        
+        passed = (
+            response.status_code == 200 and
+            "correct" in response.json() and
+            "ai_help_impact" in response.json()
+        )
+        
+        log_test("Adaptive Assessment - Submit Answer with AI Help", passed, response.text if not passed else "")
+        
+        if passed:
+            print(f"  Correct: {response.json()['correct']}")
+            print(f"  Points earned: {response.json()['points_earned']}")
+            print(f"  AI help impact: {response.json()['ai_help_impact']}")
+    except Exception as e:
+        log_test("Adaptive Assessment - Submit Answer with AI Help", False, str(e))
+    
+    # 6. Get session analytics
+    try:
+        response = requests.get(
+            f"{BASE_URL}/adaptive-assessment/{session_id}/analytics",
+            headers=headers
+        )
+        
+        passed = (
+            response.status_code == 200 and
+            "accuracy" in response.json() and
+            "final_ability_estimate" in response.json() and
+            "estimated_grade_level" in response.json() and
+            "ai_help_percentage" in response.json() and
+            "recommendations" in response.json()
+        )
+        
+        log_test("Adaptive Assessment - Session Analytics", passed, response.text if not passed else "")
+        
+        if passed:
+            print(f"  Accuracy: {response.json()['accuracy']}")
+            print(f"  Final ability estimate: {response.json()['final_ability_estimate']}")
+            print(f"  Estimated grade level: {response.json()['estimated_grade_level']}")
+            print(f"  AI help percentage: {response.json()['ai_help_percentage']}")
+            print(f"  Recommendations: {response.json()['recommendations']}")
+    except Exception as e:
+        log_test("Adaptive Assessment - Session Analytics", False, str(e))
+
 def run_all_tests():
     print("Starting StarGuide API Tests...")
     print("=" * 50)
@@ -429,6 +650,9 @@ def run_all_tests():
     
     # Test chat system
     test_chat_system(login_results)
+    
+    # Test adaptive assessment
+    test_adaptive_assessment(login_results)
     
     # Print summary
     print("\n" + "=" * 50)
