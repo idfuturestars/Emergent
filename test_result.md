@@ -329,7 +329,6 @@
 
 ## test_plan:
   current_focus:
-    - "Health Check Endpoint"
     - "External URL Access"
   stuck_tasks:
     - "Health Check Endpoint"
