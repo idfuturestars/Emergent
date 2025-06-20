@@ -598,7 +598,7 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
     answers = await db.user_answers.find({"user_id": current_user.id}).to_list(1000)
     
     total_questions = len(answers)
-    correct_answers = sum(1 for a in answers if a["is_correct"])
+    correct_answers = sum(1 for a in answers if a.get("is_correct", False))
     accuracy = (correct_answers / total_questions * 100) if total_questions > 0 else 0
     
     # Get study sessions
@@ -607,6 +607,15 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
     
     # Get study groups
     groups = await db.study_groups.find({"members": current_user.id}).to_list(100)
+    
+    # Convert MongoDB documents to dictionaries and handle ObjectId
+    recent_activity = []
+    if answers:
+        for answer in answers[-10:]:
+            # Convert ObjectId to string if present
+            if "_id" in answer:
+                answer["_id"] = str(answer["_id"])
+            recent_activity.append(answer)
     
     return {
         "user_stats": {
@@ -619,7 +628,7 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
             "study_groups": len(groups),
             "badges_earned": len(current_user.badges)
         },
-        "recent_activity": answers[-10:] if answers else [],
+        "recent_activity": recent_activity,
         "weekly_progress": [0] * 7  # TODO: Implement weekly tracking
     }
 
