@@ -21,6 +21,12 @@ import bcrypt
 import redis
 from collections import defaultdict
 
+# Import adaptive engine
+from adaptive_engine import (
+    AdaptiveEngine, GradeLevel, QuestionComplexity, ThinkAloudType,
+    adaptive_engine
+)
+
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
