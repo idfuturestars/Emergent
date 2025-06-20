@@ -357,10 +357,13 @@ async def register(user_data: UserCreate):
     # Create user
     hashed_password = hash_password(user_data.password)
     user_dict = user_data.dict()
-    user_dict["password"] = hashed_password
     user = User(**user_dict)
     
-    await db.users.insert_one(user.dict())
+    # Create user document with password
+    user_doc = user.dict()
+    user_doc["password"] = hashed_password
+    
+    await db.users.insert_one(user_doc)
     
     # Create access token
     access_token = create_access_token(data={"sub": user.id})
