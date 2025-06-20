@@ -177,7 +177,7 @@ backend:
         - agent: "main"
         - comment: "Quiz room system with participant management and room codes"
 
-  - task: "AI Tutor Integration"
+  - task: "AI Tutor Integration (OpenAI)"
     implemented: true
     working: true
     file: "backend/server.py"
@@ -186,10 +186,10 @@ backend:
     needs_retesting: false
     status_history:
         - working: true
-        - agent: "testing"
-        - comment: "AI Tutor is fully implemented and working. Chat functionality with OpenAI API, conversation persistence, and session management are all functioning correctly. Fixed an issue with the OpenAI API integration by removing the 'await' keyword."
+        - agent: "main"
+        - comment: "OpenAI GPT-4 integration for StarMentor AI tutoring with conversation memory"
 
-  - task: "Analytics Dashboard"
+  - task: "Analytics Dashboard API"
     implemented: true
     working: true
     file: "backend/server.py"
@@ -198,8 +198,8 @@ backend:
     needs_retesting: false
     status_history:
         - working: true
-        - agent: "testing"
-        - comment: "Analytics Dashboard is fully implemented and working. User statistics calculation and dashboard endpoint are functioning correctly. Fixed an issue with MongoDB ObjectId serialization."
+        - agent: "main"
+        - comment: "User analytics, progress tracking, and dashboard data endpoints"
 
   - task: "Chat System"
     implemented: true
