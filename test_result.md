@@ -345,7 +345,9 @@ test_plan:
     - "Backend API Testing Complete"
     - "Frontend Integration Ready"
     - "Full Feature Set Implemented"
-  stuck_tasks: []
+    - "Authentication System Fix Required"
+  stuck_tasks: 
+    - "Authentication System - Registration/Login/JWT"
   test_all: true
   test_priority: "completed"
 
