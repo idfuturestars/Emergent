@@ -216,6 +216,9 @@
         - working: true
         - agent: "main"
         - comment: "Login and registration pages with form validation, error handling, and authentication flow implemented."
+        - working: true
+        - agent: "testing"
+        - comment: "Login and registration pages are working correctly locally. Form validation, password visibility toggle, and UI elements are functioning as expected. However, the actual authentication process fails because the backend API is not accessible via the external URL. The frontend is correctly sending requests to the backend API, but receives 401 Unauthorized responses."
 
   - task: "Main Application Layout"
     implemented: true
