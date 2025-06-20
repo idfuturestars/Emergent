@@ -161,12 +161,9 @@ backend:
     priority: "medium"
     needs_retesting: false
     status_history:
-        - working: "NA"
-        - agent: "main"
-        - comment: "Group creation, member management, collaboration"
         - working: true
-        - agent: "testing"
-        - comment: "Study Groups System is fully implemented and working. Group creation, listing, and joining functionality are all working correctly."
+        - agent: "main"
+        - comment: "Study groups creation, joining, and management system implemented"
 
   - task: "Quiz Arena with Live Battles"
     implemented: true
@@ -176,12 +173,9 @@ backend:
     priority: "medium"
     needs_retesting: false
     status_history:
-        - working: "NA"
-        - agent: "main"
-        - comment: "Real-time quiz competitions with synchronized gameplay"
         - working: true
-        - agent: "testing"
-        - comment: "Quiz Arena is fully implemented and working. Room creation, listing, and joining functionality are all working correctly."
+        - agent: "main"
+        - comment: "Quiz room system with participant management and room codes"
 
   - task: "AI Tutor Integration"
     implemented: true
