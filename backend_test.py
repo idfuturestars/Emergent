@@ -479,18 +479,18 @@ def test_adaptive_assessment(login_results):
         # Create think-aloud data
         think_aloud_data = {
             "question_id": question_id,
-            "reasoning": "I'm solving this by first understanding what the question is asking. I need to apply the formula for the area of a circle which is πr². Since the radius is given as 5 cm, I can calculate the area as π × 5² = π × 25 = 78.54 cm².",
-            "strategy": "I'm using the formula for the area of a circle and substituting the given radius.",
+            "reasoning": "I'm solving this by first understanding what the question is asking. I need to add the fractions by finding a common denominator. For 3/4 and 1/8, the LCD is 8. Converting 3/4 to 6/8, then adding 6/8 + 1/8 = 7/8.",
+            "strategy": "I'm finding a common denominator and then adding the fractions.",
             "confidence_level": 4,  # 1-5 scale
             "difficulty_perception": 2,  # 1-5 scale
-            "connections_to_prior_knowledge": "This connects to my previous knowledge of geometry and the properties of circles."
+            "connections_to_prior_knowledge": "This connects to my previous knowledge of fraction operations and finding common denominators."
         }
         
         # Submit answer
         answer_data = {
             "session_id": session_id,
             "question_id": question_id,
-            "answer": "78.54",  # Assuming this is correct for testing
+            "answer": "7/8",  # Assuming this is correct for testing
             "response_time_seconds": 25.5,
             "think_aloud_data": think_aloud_data,
             "ai_help_used": False
