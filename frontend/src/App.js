@@ -90,6 +90,14 @@ function AppContent() {
             } 
           />
           <Route 
+            path="/adaptive-skillscan" 
+            element={
+              <ProtectedRoute>
+                <AdaptiveSkillScan />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/starmentor" 
             element={
               <ProtectedRoute>
